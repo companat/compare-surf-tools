@@ -1,0 +1,2115 @@
+<!DOCTYPE html>
+<html lang="en" >
+
+<head>
+
+	
+	<script>
+window.ts_endpoint_url = "https:\/\/slack.com\/beacon\/timing";
+
+(function(e) {
+	var n=Date.now?Date.now():+new Date,r=e.performance||{},t=[],a={},i=function(e,n){for(var r=0,a=t.length,i=[];a>r;r++)t[r][e]==n&&i.push(t[r]);return i},o=function(e,n){for(var r,a=t.length;a--;)r=t[a],r.entryType!=e||void 0!==n&&r.name!=n||t.splice(a,1)};r.now||(r.now=r.webkitNow||r.mozNow||r.msNow||function(){return(Date.now?Date.now():+new Date)-n}),r.mark||(r.mark=r.webkitMark||function(e){var n={name:e,entryType:"mark",startTime:r.now(),duration:0};t.push(n),a[e]=n}),r.measure||(r.measure=r.webkitMeasure||function(e,n,r){n=a[n].startTime,r=a[r].startTime,t.push({name:e,entryType:"measure",startTime:n,duration:r-n})}),r.getEntriesByType||(r.getEntriesByType=r.webkitGetEntriesByType||function(e){return i("entryType",e)}),r.getEntriesByName||(r.getEntriesByName=r.webkitGetEntriesByName||function(e){return i("name",e)}),r.clearMarks||(r.clearMarks=r.webkitClearMarks||function(e){o("mark",e)}),r.clearMeasures||(r.clearMeasures=r.webkitClearMeasures||function(e){o("measure",e)}),e.performance=r,"function"==typeof define&&(define.amd||define.ajs)&&define("performance",[],function(){return r}) // eslint-disable-line
+})(window);
+
+</script>
+<script>;(function() {
+
+'use strict';
+
+
+window.TSMark = function(mark_label) {
+	if (!window.performance || !window.performance.mark) return;
+	performance.mark(mark_label);
+};
+window.TSMark('start_load');
+
+
+window.TSMeasureAndBeacon = function(measure_label, start_mark_label) {
+	if (start_mark_label === 'start_nav' && window.performance && window.performance.timing) {
+		window.TSBeacon(measure_label, (new Date()).getTime() - performance.timing.navigationStart);
+		return;
+	}
+	if (!window.performance || !window.performance.mark || !window.performance.measure) return;
+	performance.mark(start_mark_label + '_end');
+	try {
+		performance.measure(measure_label, start_mark_label, start_mark_label + '_end');
+		window.TSBeacon(measure_label, performance.getEntriesByName(measure_label)[0].duration);
+	} catch(e) { return; }
+};
+
+
+window.TSBeacon = function(label, value) {
+	var endpoint_url = window.ts_endpoint_url || 'https://slack.com/beacon/timing';
+	(new Image()).src = endpoint_url + '?data=' + encodeURIComponent(label + ':' + value);
+};
+
+})();
+</script>
+ 
+
+<script>
+window.TSMark('step_load');
+</script>	<noscript><meta http-equiv="refresh" content="0; URL=/files/dnkennedy/F2D47GQPR/abide_fs5.1_landrvolumes.csv?nojsmode=1" /></noscript>
+<script>(function() {
+        'use strict';
+
+	var start_time = Date.now();
+	var logs = [];
+	var connecting = true;
+	var ever_connected = false;
+	var log_namespace;
+
+	var logWorker = function(ob) {
+		var log_str = ob.secs+' start_label:'+ob.start_label+' measure_label:'+ob.measure_label+' description:'+ob.description;
+
+		if (TS.metrics.getLatestMark(ob.start_label)) {
+			TS.metrics.measure(ob.measure_label, ob.start_label);
+			TS.log(88, log_str);
+
+			if (ob.do_reset) {
+				window.TSMark(ob.start_label);
+			}
+		} else {
+			TS.maybeWarn(88, 'not timing: '+log_str);
+		}
+	}
+
+	var log = function(k, description) {
+		var secs = (Date.now()-start_time)/1000;
+
+		logs.push({
+			k: k,
+			d: description,
+			t: secs,
+			c: !!connecting
+		})
+
+		if (!window.boot_data) return;
+		if (!window.TS) return;
+		if (!TS.metrics) return;
+		if (!connecting) return;
+
+		
+		log_namespace = log_namespace || (function() {
+			if (boot_data.app == 'client') return 'client';
+			if (boot_data.app == 'space') return 'post';
+			if (boot_data.app == 'api') return 'apisite';
+			if (boot_data.app == 'mobile') return 'mobileweb';
+			if (boot_data.app == 'web' || boot_data.app == 'oauth') return 'web';
+			return 'unknown';
+		})();
+
+		var modifier = (TS.boot_data.feature_no_rollups) ? '_no_rollups' : '';
+
+		logWorker({
+			k: k,
+			secs: secs,
+			description: description,
+			start_label: ever_connected ? 'start_reconnect' : 'start_load',
+			measure_label: 'v2_'+log_namespace+modifier+(ever_connected ? '_reconnect__' : '_load__')+k,
+			do_reset: false,
+		});
+	}
+
+	var setConnecting = function(val) {
+		val = !!val;
+		if (val == connecting) return;
+
+		if (val) {
+			log('start');
+			if (ever_connected) {
+				
+				window.TSMark('start_reconnect');
+				window.TSMark('step_reconnect');
+				window.TSMark('step_load');
+			}
+
+			connecting = val;
+			log('start');
+		} else {
+			log('over');
+			ever_connected = true;
+			connecting = val;
+		}
+	}
+
+	window.TSConnLogger = {
+		log: log,
+		logs: logs,
+		start_time: start_time,
+		setConnecting: setConnecting
+	}
+})();</script>
+
+<script type="text/javascript">
+if(self!==top)window.document.write("\u003Cstyle>body * {display:none !important;}\u003C\/style>\u003Ca href=\"#\" onclick="+
+"\"top.location.href=window.location.href\" style=\"display:block !important;padding:10px\">Go to Slack.com\u003C\/a>");
+
+(function() {
+	var timer;
+	if (self !== top) {
+		timer = window.setInterval(function() {
+			if (window.$) {
+				try {
+					$('#page').remove();
+					$('#client-ui').remove();
+					window.TS = null;
+					window.clearInterval(timer);
+				} catch(e) {}
+			}
+		}, 200);
+	}
+}());
+
+</script>
+
+<script>(function() {
+        'use strict';
+
+        window.callSlackAPIUnauthed = function(method, args, callback) {
+                var timestamp = Date.now() / 1000;  
+                var version = (window.TS && TS.boot_data) ? TS.boot_data.version_uid.substring(0, 8) : 'noversion';
+                var url = '/api/' + method + '?_x_id=' + version + '-' + timestamp;
+                var req = new XMLHttpRequest();
+
+                req.onreadystatechange = function() {
+                        if (req.readyState == 4) {
+                                req.onreadystatechange = null;
+                                var obj;
+
+                                if (req.status == 200 || req.status == 429) {
+                                        try {
+                                                obj = JSON.parse(req.responseText);
+                                        } catch (err) {
+                                                console.warn('unable to do anything with api rsp');
+                                        }
+                                }
+
+                                obj = obj || {
+                                        ok: false
+                                }
+
+                                callback(obj.ok, obj, args);
+                        }
+                }
+
+                var async = true;
+                req.open('POST', url, async);
+
+                var form_data = new FormData();
+                var has_data = false;
+                Object.keys(args).map(function(k) {
+                        if (k[0] === '_') return;
+                        form_data.append(k, args[k]);
+                        has_data = true;
+                });
+
+                if (has_data) {
+                        req.send(form_data);
+                } else {
+                        req.send();
+                }
+        }
+})();</script>
+
+						
+	
+		<script>
+			if (window.location.host == 'slack.com' && window.location.search.indexOf('story') < 0) {
+				document.cookie = '__cvo_skip_doc=' + escape(document.URL) + '|' + escape(document.referrer) + ';path=/';
+			}
+		</script>
+	
+
+	
+		<script type="text/javascript">
+		
+		try {
+			if(window.location.hash && !window.location.hash.match(/^(#?[a-zA-Z0-9_]*)$/)) {
+				window.location.hash = '';
+			}
+		} catch(e) {}
+		
+	</script>
+
+	<script type="text/javascript">
+				(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+		m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+		})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+		ga('create', "UA-106458-17", 'slack.com');
+
+				
+		ga('send', 'pageview');
+	
+		(function(e,c,b,f,d,g,a){e.SlackBeaconObject=d;
+		e[d]=e[d]||function(){(e[d].q=e[d].q||[]).push([1*new Date(),arguments])};
+		e[d].l=1*new Date();g=c.createElement(b);a=c.getElementsByTagName(b)[0];
+		g.async=1;g.src=f;a.parentNode.insertBefore(g,a)
+		})(window,document,"script","https://a.slack-edge.com/dcf8/js/libs/beacon.js","sb");
+		sb('set', 'token', '3307f436963e02d4f9eb85ce5159744c');
+
+					sb('set', 'user_id', "U1R66SFC5");
+							sb('set', 'user_' + "batch", "?");
+							sb('set', 'user_' + "created", "2016-07-12");
+						sb('set', 'name_tag', "brainhack" + '/' + "erin.w.dickie");
+				sb('track', 'pageview');
+
+		function track(a){ga('send','event','web',a);sb('track',a);}
+
+	</script>
+
+
+
+<script type='text/javascript'>
+	
+	/* safety stub */
+	window.mixpanel = {
+		track: function() {},
+		track_links: function() {},
+		track_forms: function() {}
+	};
+
+	function mixpanel_track(){}
+	function mixpanel_track_forms(){}
+	function mixpanel_track_links(){}
+	
+</script>
+	
+	<meta name="referrer" content="no-referrer">
+		<meta name="superfish" content="nofish">
+
+	<script type="text/javascript">
+
+
+
+var TS_last_log_date = null;
+var TSMakeLogDate = function() {
+	var date = new Date();
+
+	var y = date.getFullYear();
+	var mo = date.getMonth()+1;
+	var d = date.getDate();
+
+	var time = {
+	  h: date.getHours(),
+	  mi: date.getMinutes(),
+	  s: date.getSeconds(),
+	  ms: date.getMilliseconds()
+	};
+
+	Object.keys(time).map(function(moment, index) {
+		if (moment == 'ms') {
+			if (time[moment] < 10) {
+				time[moment] = time[moment]+'00';
+			} else if (time[moment] < 100) {
+				time[moment] = time[moment]+'0';
+			}
+		} else if (time[moment] < 10) {
+			time[moment] = '0' + time[moment];
+		}
+	});
+
+	var str = y + '/' + mo + '/' + d + ' ' + time.h + ':' + time.mi + ':' + time.s + '.' + time.ms;
+	if (TS_last_log_date) {
+		var diff = date-TS_last_log_date;
+		//str+= ' ('+diff+'ms)';
+	}
+	TS_last_log_date = date;
+	return str+' ';
+}
+
+var parseDeepLinkRequest = function(code) {
+	var m = code.match(/"id":"([CDG][A-Z0-9]{8})"/);
+	var id = m ? m[1] : null;
+
+	m = code.match(/"team":"(T[A-Z0-9]{8})"/);
+	var team = m ? m[1] : null;
+
+	m = code.match(/"message":"([0-9]+\.[0-9]+)"/);
+	var message = m ? m[1] : null;
+
+	return { id: id, team: team, message: message };
+}
+
+if ('rendererEvalAsync' in window) {
+	var origRendererEvalAsync = window.rendererEvalAsync;
+	window.rendererEvalAsync = function(blob) {
+		try {
+			var data = JSON.parse(decodeURIComponent(atob(blob)));
+			if (data.code.match(/handleDeepLink/)) {
+				var request = parseDeepLinkRequest(data.code);
+				if (!request.id || !request.team || !request.message) return;
+
+				request.cmd = 'channel';
+				TSSSB.handleDeepLinkWithArgs(JSON.stringify(request));
+				return;
+			} else {
+				origRendererEvalAsync(blob);
+			}
+		} catch (e) {
+		}
+	}
+}
+</script>
+
+
+
+<script type="text/javascript">
+
+	var TSSSB = {
+		call: function() {
+			return false;
+		}
+	};
+
+</script>
+<script>TSSSB.env = (function() {
+	'use strict';
+
+	var v = {
+		win_ssb_version: null,
+		win_ssb_version_minor: null,
+		mac_ssb_version: null,
+		mac_ssb_version_minor: null,
+		mac_ssb_build: null,
+		lin_ssb_version: null,
+		lin_ssb_version_minor: null,
+		desktop_app_version: null
+	};
+	
+	var is_win = (navigator.appVersion.indexOf("Windows") !== -1);
+	var is_lin = (navigator.appVersion.indexOf("Linux") !== -1);
+	var is_mac = !!(navigator.userAgent.match(/(OS X)/g));
+
+	if (navigator.userAgent.match(/(Slack_SSB)/g) || navigator.userAgent.match(/(Slack_WINSSB)/g)) {
+		
+		var parts = navigator.userAgent.split('/');
+		var version_str = parts[parts.length-1];
+		var version_float = parseFloat(version_str);
+		var version_parts = version_str.split('.');
+		var version_minor = (version_parts.length == 3) ? parseInt(version_parts[2]) : 0;
+
+		if (navigator.userAgent.match(/(AtomShell)/g)) {
+			
+			if (is_lin) {
+				v.lin_ssb_version = version_float;
+				v.lin_ssb_version_minor = version_minor;
+			} else if (is_win) {
+				v.win_ssb_version = version_float;
+				v.win_ssb_version_minor = version_minor;
+			} else if (is_mac) {
+				v.mac_ssb_version = version_float;
+				v.mac_ssb_version_minor = version_minor;
+			}
+			
+			if (version_parts.length >= 3) {
+				v.desktop_app_version = {
+					major: parseInt(version_parts[0]),
+					minor: parseInt(version_parts[1]),
+					patch: parseInt(version_parts[2])
+				}
+			}
+		} else {
+			
+			v.mac_ssb_version = version_float;
+			v.mac_ssb_version_minor = version_minor;
+			
+			
+			
+			var app_ver = window.macgap && macgap.app && macgap.app.buildVersion && macgap.app.buildVersion();
+			var matches = String(app_ver).match(/(?:\()(.*)(?:\))/);
+			v.mac_ssb_build = (matches && matches.length == 2) ? parseInt(matches[1] || 0) : 0;
+		}
+	}
+
+	return v;
+})();
+</script>
+
+
+	<script type="text/javascript">
+		
+		var was_TS = window.TS;
+		delete window.TS;
+		TSSSB.call('didFinishLoading');
+		if (was_TS) window.TS = was_TS;
+	</script>
+	    <title>ABIDE_fs5.1_LandRvolumes.csv | brainhack Slack</title>
+    <meta name="author" content="Slack">
+
+	
+		
+	
+	
+					
+	
+				
+	
+	
+	
+	
+			<!-- output_css "core" -->
+    <link href="https://a.slack-edge.com/95f0/style/rollup-plastic.css" rel="stylesheet" type="text/css" crossorigin="anonymous">
+
+		<!-- output_css "before_file_pages" -->
+    <link href="https://a.slack-edge.com/ce3a/style/libs/codemirror.css" rel="stylesheet" type="text/css" crossorigin="anonymous">
+    <link href="https://a.slack-edge.com/aba7e/style/codemirror_overrides.css" rel="stylesheet" type="text/css" crossorigin="anonymous">
+
+	<!-- output_css "file_pages" -->
+    <link href="https://a.slack-edge.com/2baae/style/rollup-file_pages.css" rel="stylesheet" type="text/css" crossorigin="anonymous">
+
+	<!-- output_css "regular" -->
+    <link href="https://a.slack-edge.com/054b/style/print.css" rel="stylesheet" type="text/css" crossorigin="anonymous">
+    <link href="https://a.slack-edge.com/1d9c/style/libs/lato-1-compressed.css" rel="stylesheet" type="text/css" crossorigin="anonymous">
+
+	
+
+	
+	
+		<meta name="robots" content="noindex, nofollow" />
+	
+
+	
+<link id="favicon" rel="shortcut icon" href="https://a.slack-edge.com/66f9/img/icons/favicon-32.png" sizes="16x16 32x32 48x48" type="image/png" />
+
+<link rel="icon" href="https://a.slack-edge.com/0180/img/icons/app-256.png" sizes="256x256" type="image/png" />
+
+<link rel="apple-touch-icon-precomposed" sizes="152x152" href="https://a.slack-edge.com/66f9/img/icons/ios-152.png" />
+<link rel="apple-touch-icon-precomposed" sizes="144x144" href="https://a.slack-edge.com/66f9/img/icons/ios-144.png" />
+<link rel="apple-touch-icon-precomposed" sizes="120x120" href="https://a.slack-edge.com/66f9/img/icons/ios-120.png" />
+<link rel="apple-touch-icon-precomposed" sizes="114x114" href="https://a.slack-edge.com/66f9/img/icons/ios-114.png" />
+<link rel="apple-touch-icon-precomposed" sizes="72x72" href="https://a.slack-edge.com/0180/img/icons/ios-72.png" />
+<link rel="apple-touch-icon-precomposed" href="https://a.slack-edge.com/66f9/img/icons/ios-57.png" />
+
+<meta name="msapplication-TileColor" content="#FFFFFF" />
+<meta name="msapplication-TileImage" content="https://a.slack-edge.com/66f9/img/icons/app-144.png" />
+	
+	<!--[if lt IE 9]>
+	<script src="https://a.slack-edge.com/ef0d/js/libs/html5shiv.js"></script>
+	<![endif]-->
+
+</head>
+
+<body class="			">
+
+		  			<script>
+		
+			var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+			if (w > 1440) document.querySelector('body').classList.add('widescreen');
+		
+		</script>
+	
+  	
+	
+
+			<nav id="site_nav" class="no_transition">
+
+	<div id="site_nav_contents">
+
+		<div id="user_menu">
+			<div id="user_menu_contents">
+				<div id="user_menu_avatar">
+										<span class="member_image thumb_48" style="background-image: url('https://secure.gravatar.com/avatar/cdca521bd279d157bed2a3eb10ef686f.jpg?s=192&d=https%3A%2F%2Fa.slack-edge.com%2F7fa9%2Fimg%2Favatars%2Fava_0016-192.png')" data-thumb-size="48" data-member-id="U1R66SFC5"></span>
+					<span class="member_image thumb_36" style="background-image: url('https://secure.gravatar.com/avatar/cdca521bd279d157bed2a3eb10ef686f.jpg?s=72&d=https%3A%2F%2Fa.slack-edge.com%2F66f9%2Fimg%2Favatars%2Fava_0016-72.png')" data-thumb-size="36" data-member-id="U1R66SFC5"></span>
+				</div>
+				<h3>Signed in as</h3>
+				<span id="user_menu_name">erin.w.dickie</span>
+			</div>
+		</div>
+
+		<div class="nav_contents">
+
+			<ul class="primary_nav">
+				<li><a href="/home" data-qa="home"><i class="ts_icon ts_icon_home"></i>Home</a></li>
+				<li><a href="/account" data-qa="account_profile"><i class="ts_icon ts_icon_user"></i>Account & Profile</a></li>
+				<li><a href="/apps/manage" data-qa="configure_apps" target="_blank"><i class="ts_icon ts_icon_plug"></i>Configure Apps</a></li>
+				<li><a href="/archives"data-qa="archives"><i class="ts_icon ts_icon_archive" ></i>Message Archives</a></li>
+				<li><a href="/files" data-qa="files"><i class="ts_icon ts_icon_all_files clear_blue"></i>Files</a></li>
+				<li><a href="/team" data-qa="team_directory"><i class="ts_icon ts_icon_team_directory"></i>Team Directory</a></li>
+									<li><a href="/stats" data-qa="statistics"><i class="ts_icon ts_icon_dashboard"></i>Statistics</a></li>
+													<li><a href="/customize" data-qa="customize"><i class="ts_icon ts_icon_magic"></i>Customize</a></li>
+													<li><a href="/account/team" data-qa="team_settings"><i class="ts_icon ts_icon_cog_o"></i>Team Settings</a></li>
+							</ul>
+
+			
+		</div>
+
+		<div id="footer">
+
+			<ul id="footer_nav">
+				<li><a href="/is" data-qa="tour">Tour</a></li>
+				<li><a href="/downloads" data-qa="download_apps">Download Apps</a></li>
+				<li><a href="/brand-guidelines" data-qa="brand_guidelines">Brand Guidelines</a></li>
+				<li><a href="/help" data-qa="help">Help</a></li>
+				<li><a href="https://api.slack.com" target="_blank" data-qa="api">API<i class="ts_icon ts_icon_external_link small_left_margin ts_icon_inherit"></i></a></li>
+								<li><a href="/pricing" data-qa="pricing">Pricing</a></li>
+				<li><a href="/help/requests/new" data-qa="contact">Contact</a></li>
+				<li><a href="/terms-of-service" data-qa="policies">Policies</a></li>
+				<li><a href="http://slackhq.com/" target="_blank" data-qa="our_blog">Our Blog</a></li>
+				<li><a href="https://slack.com/signout/16898709781?crumb=s-1474296537-a2d5ee13b4-%E2%98%83" data-qa="sign_out">Sign Out<i class="ts_icon ts_icon_sign_out small_left_margin ts_icon_inherit"></i></a></li>
+			</ul>
+
+			<p id="footer_signature">Made with <i class="ts_icon ts_icon_heart"></i> by Slack</p>
+
+		</div>
+
+	</div>
+</nav>	
+			<header>
+			<a id="menu_toggle" class="no_transition" data-qa="menu_toggle_hamburger">
+			<span class="menu_icon"></span>
+			<span class="menu_label">Menu</span>
+			<span class="vert_divider"></span>
+		</a>
+		<h1 id="header_team_name" class="inline_block no_transition" data-qa="header_team_name">
+			<a href="/home">
+				<i class="ts_icon ts_icon_home" /></i>
+				brainhack
+			</a>
+		</h1>
+		<div class="header_nav">
+			<div class="header_btns float_right">
+				<a id="team_switcher" data-qa="team_switcher">
+					<i class="ts_icon ts_icon_th_large ts_icon_inherit"></i>
+					<span class="block label">Teams</span>
+				</a>
+				<a href="/help" id="help_link" data-qa="help_link">
+					<i class="ts_icon ts_icon_life_ring ts_icon_inherit"></i>
+					<span class="block label">Help</span>
+				</a>
+									<a href="/messages" data-qa="launch">
+						<img src="https://a.slack-edge.com/66f9/img/icons/ios-64.png" srcset="https://a.slack-edge.com/66f9/img/icons/ios-32.png 1x, https://a.slack-edge.com/66f9/img/icons/ios-64.png 2x" />
+						<span class="block label">Launch</span>
+					</a>
+							</div>
+				                    <ul id="header_team_nav" data-qa="team_switcher_menu">
+	                        	                            <li class="active">
+	                            	<a href="https://brainhack.slack.com/home" target="https://brainhack.slack.com/">
+	                            			                            			<i class="ts_icon small ts_icon_check_circle_o active_icon s"></i>
+	                            			                            				                            		<i class="team_icon small" style="background-image: url('https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2016-02-29/23485151845_37e3142e6e9761234118_88.jpg');"></i>
+		                            		                            		<span class="switcher_label team_name">brainhack</span>
+	                            	</a>
+	                            </li>
+	                        	                            <li >
+	                            	<a href="https://tigrlab.slack.com/home" target="https://tigrlab.slack.com/">
+	                            			                            				                            		<i class="team_icon small" style="background-image: url('https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2016-04-24/37305506084_5ad789fea4a71e490f8b_88.jpg');"></i>
+		                            		                            		<span class="switcher_label team_name">TIGRlab</span>
+	                            	</a>
+	                            </li>
+	                        	                        <li id="add_team_option"><a href="https://slack.com/signin" target="_blank"><i class="ts_icon ts_icon_plus team_icon small"></i> <span class="switcher_label">Sign in to another team...</span></a></li>
+	                    </ul>
+	                		</div>
+	
+	
+</header>	
+	<div id="page" >
+
+		<div id="page_contents" data-qa="page_contents" class="">
+
+<p class="print_only">
+	<strong>Created by dnkennedy on September 19, 2016 at 3:21 AM</strong><br />
+	<span class="subtle_silver break_word">https://brainhack.slack.com/files/dnkennedy/F2D47GQPR/abide_fs5.1_landrvolumes.csv</span>
+</p>
+
+<div class="file_header_container no_print"></div>
+
+<div class="alert_container">
+		<div class="file_public_link_shared alert" style="display: none;">
+		
+	<i class="ts_icon ts_icon_link"></i> Public Link: <a class="file_public_link" href="https://slack-files.com/T0GSELVNZ-F2D47GQPR-8e5a61c3f7" target="new">https://slack-files.com/T0GSELVNZ-F2D47GQPR-8e5a61c3f7</a>
+</div></div>
+
+<div id="file_page" class="card top_padding">
+
+	<p class="small subtle_silver no_print meta">
+		112KB CSV snippet created on <span class="date">September 19th 2016</span>.
+				<span class="file_share_list"></span>
+	</p>
+
+	<a id="file_action_cog" class="action_cog action_cog_snippet float_right no_print">
+		<span>Actions </span><i class="ts_icon ts_icon_cog"></i>
+	</a>
+	<a id="snippet_expand_toggle" class="float_right no_print">
+		<i class="ts_icon ts_icon_expand "></i>
+		<i class="ts_icon ts_icon_compress hidden"></i>
+	</a>
+
+	<div class="large_bottom_margin clearfix">
+		<pre id="file_contents">SubjID, LLatVent,RLatVent,Lthal,Rthal,Lcaud,Rcaud,Lput,Rput,  Lpal,Rpal,Lhippo,Rhippo,Lamyg,Ramyg,Laccumb,Raccumb,ICV
+Caltech_0051456,17950,21363,7444,7708,3836,3840,5367,4828,1616,1263,4239,4078,1627,1854,378,441,1.6976e+06
+Caltech_0051457,14742,12459,8597,9120,5618,5007,5400,5629,1857,1639,4114,5367,1801,1527,660,847,1.93805e+06
+Caltech_0051458,6198,4143,8137,9336,4970,4739,6202,5281,1945,1631,4770,5045,1947,1792,900,733,1.62388e+06
+Caltech_0051459,2636,2121,8769,9029,4010,4149,5861,5714,1837,1612,3995,4192,1430,1322,538,552,1.71576e+06
+Caltech_0051460,5228,4705,7212,6851,3349,3402,5416,5313,1663,1444,4437,4662,1568,1495,407,373,1.54856e+06
+Caltech_0051461,42713,29649,8789,8978,4178,3858,5610,5520,2038,1405,3965,4004,1588,1735,639,630,1.84681e+06
+Caltech_0051462,5038,5276,9137,9338,4533,4705,5747,5424,1999,1524,4606,4763,1469,1532,672,501,1.46234e+06
+Caltech_0051463,4706,5660,8934,8316,4959,4759,5702,5620,2021,1625,4483,4527,1582,1381,568,514,1.36719e+06
+Caltech_0051464,4800,3917,9483,10419,6504,6379,8150,8161,2665,2227,5790,5687,2309,2076,1047,866,1.79821e+06
+Caltech_0051465,18687,19036,6668,6693,3537,3541,5036,4778,1621,1519,4077,3767,1532,1555,416,379,1.59425e+06
+Caltech_0051466,9062,6710,8681,7838,4512,4184,5791,5070,1968,1482,4590,4491,1585,1582,546,499,1.61181e+06
+Caltech_0051467,3425,4441,7951,8567,4777,4812,6804,6441,2098,1759,4824,4858,1623,1871,766,834,1.79708e+06
+Caltech_0051468,3631,6235,8262,7814,4722,4684,5575,5459,1932,1772,4846,4488,1963,1860,739,609,1.94813e+06
+Caltech_0051469,14975,14736,7475,7550,4144,4134,5672,5315,1873,1630,4543,4290,1585,1658,571,572,1.85644e+06
+Caltech_0051470,5724,3257,9136,9135,4757,4575,7056,6579,2364,2013,5845,5929,1965,2047,747,763,2.02104e+06
+Caltech_0051471,2880,1500,6756,8315,3431,3378,4995,4987,1874,1709,3494,3668,1367,1362,374,371,1.17094e+06
+Caltech_0051472,6649,10089,9512,10686,5062,4938,7481,7698,2383,1913,5327,5376,2007,1862,728,626,2.05494e+06
+Caltech_0051473,3297,3916,8490,8605,3508,3639,6147,5741,1847,1612,4410,4318,1686,1650,628,626,1.68171e+06
+Caltech_0051474,6429,10561,9050,9054,5145,5268,6820,6235,2217,1823,5264,5213,2035,1893,664,618,1.84199e+06
+Caltech_0051475,5574,4921,10180,8971,4548,4387,6570,6276,2180,1943,4701,5144,1794,1832,770,723,1.66524e+06
+Caltech_0051476,11961,9094,8306,8537,4596,4714,5589,5554,2249,1661,3995,3806,1698,1373,689,575,1.82701e+06
+Caltech_0051477,3494,1504,7123,7606,3649,3609,3678,3866,1657,1459,3968,4153,1588,1428,655,515,1.18004e+06
+Caltech_0051478,3415,5206,7936,8147,3769,3951,6337,6197,2010,1562,4759,5018,1739,1631,557,485,1.63252e+06
+Caltech_0051479,9273,8956,8349,7885,4859,4315,5050,4662,2162,1518,4280,3765,1512,1514,511,514,1.36799e+06
+Caltech_0051480,5013,2284,6646,6928,4129,3973,5493,5328,2022,1588,4350,4498,1708,1430,656,475,1.22466e+06
+Caltech_0051481,3411,3551,9792,10186,4529,4315,6548,5828,2495,1856,4322,4268,1765,1819,713,566,1.58837e+06
+Caltech_0051482,4963,2957,7180,7038,3139,3247,5430,4756,2001,1402,4145,4173,1304,1585,567,481,1.39285e+06
+Caltech_0051483,4111,3238,6998,7175,3827,3670,6692,6498,2028,1838,4228,4289,1433,1459,514,475,1.44538e+06
+Caltech_0051484,3489,5195,8467,8664,4168,4128,6901,6181,2008,1732,4823,4585,1840,1832,667,590,1.66072e+06
+Caltech_0051485,12917,20268,8040,8642,5646,5611,6649,6744,2044,1767,4967,4601,1953,1958,567,526,1.85044e+06
+Caltech_0051486,8951,4615,8666,9234,4494,4181,6560,6315,2067,1903,5176,5278,1562,1755,874,762,1.81142e+06
+Caltech_0051487,3334,4574,7389,7603,3245,3348,5502,5275,1804,1481,4435,4373,1483,1600,444,532,1.51158e+06
+Caltech_0051488,11855,9290,7128,6967,4321,4250,5748,5681,2036,1645,3947,2847,1516,1311,658,609,1.29053e+06
+Caltech_0051489,7613,8922,8452,8893,4393,4343,6106,6120,1914,1698,4073,4231,1611,1736,616,535,1.77806e+06
+Caltech_0051490,6495,5663,8432,8460,3542,3407,5385,5205,1967,1780,4404,4526,1401,1515,623,426,1.4876e+06
+Caltech_0051491,6009,7265,7592,7694,3616,3328,5469,5186,1557,1332,4109,3960,1713,1705,467,445,1.4814e+06
+Caltech_0051492,2986,3185,8738,9232,3980,4605,7283,7054,2207,1885,5085,5071,2011,1965,727,690,1.84884e+06
+Caltech_0051493,3545,3787,8110,8045,4443,4341,5550,5193,1972,1579,4120,4379,1458,1524,577,519,1.57568e+06
+CMU_a_0050642,6995,3811,7394,7709,3325,3392,5294,5250,1650,1429,4867,4907,1541,1855,627,699,1.54934e+06
+CMU_a_0050646,3290,3194,8986,9475,3333,3410,6458,5655,1729,1495,5644,5520,2042,1776,674,654,1.55679e+06
+CMU_a_0050647,9655,8105,5571,5838,3308,3290,4896,4573,1523,1286,3858,4133,1582,1717,657,613,1.35848e+06
+CMU_a_0050649,12151,11170,8006,7970,4331,4348,6767,6077,1851,1584,4953,5101,1813,1832,646,695,1.63602e+06
+CMU_a_0050653,10982,7861,7837,8504,4622,4501,6363,5391,2170,2104,4725,4793,2100,2285,716,699,1.63566e+06
+CMU_a_0050654,4984,4457,8387,7929,4711,4730,4917,4598,1444,1465,5078,4877,1822,2039,707,760,1.4712e+06
+CMU_a_0050656,2122,2338,6991,6301,2797,2757,5122,4849,1402,1351,4312,4514,1606,1751,611,512,1.23005e+06
+CMU_a_0050659,5636,3179,9494,8787,5166,4614,7122,6836,2050,2090,5040,5584,2260,2437,776,909,1.81773e+06
+CMU_a_0050660,3951,9718,7876,7929,4084,4330,7281,6999,1927,1719,4258,4545,1923,2143,939,980,1.23627e+06
+CMU_a_0050663,7016,11357,7328,7297,4879,4825,6755,6328,1806,1823,4970,4826,1985,2007,762,752,1.63534e+06
+CMU_a_0050664,4453,3098,7058,7148,3295,2821,6274,5435,1737,1456,3929,4507,1672,1769,764,876,1.21889e+06
+CMU_a_0050665,2094,6361,7222,7449,2776,3386,5139,4838,1375,1152,5069,5114,1941,1779,506,503,1.3151e+06
+CMU_a_0050666,4192,6989,8779,9010,3957,4047,6673,6374,2150,1773,4935,5205,2273,2354,727,688,1.81536e+06
+CMU_a_0050668,5188,4798,7864,8155,3403,3402,6169,5219,1817,1505,4403,4525,1604,1651,617,603,1.13828e+06
+CMU_b_0050643,6617,5520,7767,7419,4395,4317,6463,6128,2440,1965,4308,4582,1972,1937,633,664,1.41949e+06
+CMU_b_0050644,3467,2629,7331,7494,3186,2872,4807,4413,1415,1286,4073,4057,1748,1907,612,646,1.40621e+06
+CMU_b_0050645,6251,3375,9470,9393,3553,3043,6128,5708,1836,1554,4901,5503,2027,1981,773,778,1.46559e+06
+CMU_b_0050648,8599,3271,6282,6754,3508,3115,4999,4883,1706,1440,3949,3963,1367,1538,615,774,1.26954e+06
+CMU_b_0050650,2811,1757,6373,6734,3092,3066,5564,5011,1460,1390,3864,3819,1460,1711,777,629,658686
+CMU_b_0050651,6245,3083,8689,9379,3879,3333,7167,6189,2084,1713,4759,4691,2077,2105,783,649,1.67314e+06
+CMU_b_0050652,14671,6410,7640,7961,4070,3690,6418,5275,1648,1451,4460,5012,1786,1822,572,647,1.67496e+06
+CMU_b_0050655,9505,9542,8227,8148,4435,4111,7059,6043,2275,1811,5703,5678,2116,2125,727,850,1.81568e+06
+CMU_b_0050657,5521,7032,8286,7799,4308,4160,6017,5573,1781,1734,4500,4576,1627,1612,618,758,1.59754e+06
+CMU_b_0050658,9439,8480,7614,8398,4367,4463,6131,5549,2185,1782,4432,4785,1752,1933,787,811,1.54827e+06
+CMU_b_0050661,6170,4335,6734,6806,3383,3238,5575,5059,1544,1398,4102,4338,1645,1635,672,800,1.25439e+06
+CMU_b_0050667,8675,6175,7075,7635,4003,3893,5789,5108,1622,1482,3966,4216,1571,1749,639,693,1.56155e+06
+CMU_b_0050669,4857,5471,7849,7926,3651,3612,5206,4712,1775,1482,3905,4105,1577,1616,605,513,1.37191e+06
+KKI_0050772,10108,7419,7627,7385,4220,4182,7775,7495,2129,2006,4129,4374,2067,1784,884,942,1.60886e+06
+KKI_0050773,3917,4610,7431,7257,5181,5367,7377,6551,2095,1893,4543,4278,2129,1848,1159,1113,1.64808e+06
+KKI_0050774,6300,5256,7342,7465,4357,4739,7429,7047,1951,1789,4036,4213,1643,1817,828,791,1.68209e+06
+KKI_0050775,6167,5508,7461,7652,4494,4548,6913,6521,2084,1906,4493,4342,2041,1865,1091,1019,1.7062e+06
+KKI_0050776,4813,3271,6719,7170,4074,4283,7139,6915,1807,1818,3656,3897,1682,1576,700,849,1.42252e+06
+KKI_0050777,4151,4021,7948,8257,4716,4706,8453,8368,2232,2027,4879,5105,2301,2203,1002,985,1.64726e+06
+KKI_0050778,4447,3345,6706,6832,3455,3506,6539,6027,1791,1616,3701,3551,1805,1502,769,722,1.28597e+06
+KKI_0050779,5882,5737,7041,6766,4129,4414,6624,6301,2278,2138,3884,3634,1507,1641,778,813,1.38627e+06
+KKI_0050780,3410,2840,7045,6929,4097,4136,6451,5878,1824,1517,3917,3731,1607,1579,1071,847,1.52481e+06
+KKI_0050781,3671,3332,6862,6716,4704,4689,8580,8233,2010,1699,4218,4251,1974,1768,1128,1045,1.42856e+06
+KKI_0050782,4927,6329,7323,7267,4241,4721,6866,6384,2020,1937,3748,3662,1717,1720,988,711,1.50258e+06
+KKI_0050783,3552,2459,6966,6393,4326,4093,7072,6725,1933,1562,4081,3815,1946,1717,838,890,1.29979e+06
+KKI_0050784,3384,2664,6871,7366,3775,3960,6355,6169,1846,1681,3550,3353,1653,1532,584,883,1.3476e+06
+KKI_0050785,6284,5385,7438,8005,3443,3768,7650,6800,2040,2087,5062,4109,1372,1653,770,627,1.54237e+06
+KKI_0050786,6096,3948,7553,7559,4954,5150,8659,8053,2460,2303,3873,4260,1824,1874,1045,956,1.45085e+06
+KKI_0050787,10367,8494,7534,7660,4451,4621,7459,7249,1913,1797,3795,3876,1716,2149,723,818,1.42613e+06
+KKI_0050788,3740,2776,7172,7381,4446,4518,7526,6934,2190,2232,4463,4514,2097,2010,929,837,1.51789e+06
+KKI_0050789,4482,4199,7716,8048,3960,4257,8028,7584,2067,1765,3873,3753,1581,1748,1317,1023,1.69964e+06
+KKI_0050790,4202,4454,6516,6667,3414,3798,5999,6046,1795,1653,1977,3693,1227,1455,752,783,1.29611e+06
+KKI_0050791,5003,6297,7597,7808,4256,4364,8491,8707,2281,2213,4501,4517,2000,1884,1265,1232,1.69363e+06
+KKI_0050792,5878,7417,7163,7233,5273,5585,7589,7244,2195,2057,4279,4055,2030,1751,902,860,1.62746e+06
+KKI_0050793,4432,5187,6992,7202,4111,4292,6097,6194,1785,1607,3683,3581,1357,1492,666,723,1.36075e+06
+KKI_0050794,5997,8519,7773,7830,4321,4451,7656,7140,2278,2164,3847,4072,1642,1765,864,805,1.49497e+06
+KKI_0050795,6520,6133,6771,6908,3931,4348,7508,7367,2036,1971,3923,3776,1700,1779,746,794,1.56914e+06
+KKI_0050796,13558,14493,7245,7316,3777,4004,6148,6247,1973,1738,3047,3393,1913,1772,569,671,1.47292e+06
+KKI_0050797,5967,6453,7932,7263,3955,4206,6832,6511,2135,1739,3841,4334,1649,1923,852,1089,1.42979e+06
+KKI_0050798,3853,4384,8038,8175,4342,4409,7136,7191,2069,1800,3959,3526,1769,2078,1181,1174,1.63756e+06
+KKI_0050799,3459,3550,7707,7396,4067,4283,7278,7196,2042,1802,4349,3635,1387,1590,788,752,1.49214e+06
+KKI_0050800,3609,7268,8106,8573,5161,5335,8417,8625,2295,2062,5006,4620,2679,2452,1072,1239,2.00538e+06
+KKI_0050801,3420,3017,7344,7265,4609,4737,8221,7646,2390,2144,4101,3899,1886,2147,1144,837,1.47888e+06
+KKI_0050802,4161,5422,7622,7479,4548,4848,8497,8237,2376,2152,4445,4189,1960,1822,1088,1109,1.50603e+06
+KKI_0050803,9719,8913,7035,6746,4145,4246,6176,5179,1941,1441,3286,3348,1620,1633,888,796,1.61848e+06
+KKI_0050804,4600,5643,7872,7935,4380,4669,8283,7887,2165,1997,4321,4375,1649,1758,1001,1135,1.61158e+06
+KKI_0050805,4242,2974,8125,8324,5137,5031,8002,7368,2409,2029,4058,4096,2124,2120,950,977,1.64752e+06
+KKI_0050806,2859,2488,6386,6642,4027,4246,6868,6304,1960,1868,3876,3904,1667,1624,701,688,1.39305e+06
+KKI_0050807,4066,3621,6946,7152,3981,4192,6879,6748,2306,2096,3645,4000,1944,2026,700,936,1.38567e+06
+KKI_0050808,2827,4380,7118,7270,4119,4657,7748,7283,2213,1969,4518,4696,1870,2014,958,989,1.51075e+06
+KKI_0050809,6259,6028,8696,8803,3895,4158,7575,7749,2247,2059,4217,4330,2744,2231,1021,1057,1.61938e+06
+KKI_0050810,12122,10382,7709,7874,4815,4851,7121,6744,2152,1723,3875,3944,1852,2082,987,1023,1.54407e+06
+KKI_0050811,9684,6198,7542,7716,5048,5078,7806,7600,2316,2147,4080,4287,2222,2184,939,1055,1.76238e+06
+KKI_0050812,4765,2983,7249,7614,3432,3488,6341,6246,1911,1657,3604,3285,1587,1310,645,660,1.44371e+06
+KKI_0050813,4104,4733,6063,6237,3615,3871,6435,6049,1843,1867,3464,3430,1480,1507,717,710,1.35086e+06
+KKI_0050814,8159,4306,7142,6991,4368,4557,7742,7464,2296,2132,3905,4133,1877,1801,842,846,1.69189e+06
+KKI_0050815,3833,7314,8115,6272,3708,3499,6118,4816,1914,1739,3443,2776,1489,1479,749,974,1.59977e+06
+KKI_0050816,5318,5341,6894,7123,4652,4893,7179,7254,2047,1882,4206,4018,1391,1308,665,785,1.39202e+06
+KKI_0050817,4250,2919,7146,6947,4075,4274,7334,7013,1879,1769,3966,4002,1762,1769,853,931,1.55162e+06
+KKI_0050818,4628,4115,6649,6855,3623,3735,6433,6054,1810,1614,3792,3904,1901,1756,707,678,801535
+KKI_0050819,6759,5614,6844,7106,4156,4112,7218,6791,1861,2093,3836,3695,1846,2114,802,842,1.53759e+06
+KKI_0050820,2805,2372,6890,6803,4232,4216,7727,7831,2253,1981,3680,3885,1854,1792,1010,823,1.5476e+06
+KKI_0050821,3420,3023,7462,7215,4141,4373,7655,7176,2205,1853,4290,4259,2387,2071,1019,1031,1.23711e+06
+KKI_0050822,4195,3639,6466,6824,3672,4002,6239,5090,1556,1349,3421,3292,1621,1555,892,782,1.4331e+06
+KKI_0050823,6353,4319,7899,7784,4482,4544,7354,7135,2192,1750,4102,4409,2173,2207,894,940,1.50738e+06
+KKI_0050824,4268,3912,8386,8328,4241,4572,7558,6876,2590,2457,4497,4207,1867,2101,1136,884,1.71507e+06
+KKI_0050825,4797,3415,8643,8343,5911,6355,9382,8867,2640,2086,4483,3946,2103,1912,883,1029,1.63574e+06
+KKI_0050826,5828,5953,9040,9314,3455,3924,8524,7772,2352,1853,3883,4067,2191,1494,887,875,1.62166e+06
+Leuven_1_0050682,5373,4717,6826,6786,3103,3627,7346,6569,2077,1445,4346,4526,1792,1902,964,980,1.2734e+06
+Leuven_1_0050683,3726,3452,6772,7306,4040,4156,7001,6950,2095,1635,4299,4322,2123,2059,803,995,1.07795e+06
+Leuven_1_0050685,6237,3981,7180,7178,4272,4199,7425,6692,2024,1656,3240,4467,1951,1897,964,1047,1.2201e+06
+Leuven_1_0050686,7165,8494,7011,6766,3789,3951,6044,5827,1856,1509,3052,4117,1786,1926,711,797,1.01011e+06
+Leuven_1_0050687,5466,8255,7526,7674,4198,4554,7755,7432,2103,1656,4378,4437,2605,2371,999,1039,1.33793e+06
+Leuven_1_0050688,4392,4329,6877,6860,4045,4177,7163,6608,1933,1446,4362,4464,1949,2222,736,958,1.12661e+06
+Leuven_1_0050689,6161,4928,7243,7797,4062,4149,7494,7267,1915,1567,4696,4727,2610,2363,853,894,1.21416e+06
+Leuven_1_0050690,3864,3920,6926,7249,4101,4250,7419,6674,2123,1530,4078,4148,2910,2081,859,976,1.18181e+06
+Leuven_1_0050691,5671,7484,7479,7505,4367,4788,7367,6888,2284,1679,4325,4544,2227,2336,983,1046,1.25115e+06
+Leuven_1_0050692,5281,4840,7499,7791,4377,4611,8326,8085,2174,2006,4741,4622,2093,2179,1434,1123,1.30215e+06
+Leuven_1_0050693,4314,4655,7130,6970,4216,4133,6556,6119,1914,1440,4155,4280,2307,1996,660,837,1.13763e+06
+Leuven_1_0050694,19066,16764,6374,7167,4297,4239,7158,6837,1942,1587,3811,3803,1863,1719,734,881,1.52242e+06
+Leuven_1_0050695,6172,5814,7419,7555,4383,4602,8756,7970,2116,1796,4830,4847,2472,2436,1319,1321,1.45131e+06
+Leuven_1_0050696,11606,9951,6954,7531,4205,3911,8053,7731,2071,1848,4397,4110,2441,2385,873,1109,1.34071e+06
+Leuven_1_0050697,6188,4434,6058,6839,3247,3567,7212,6998,1790,1477,3936,3799,1810,2400,934,1081,1.17975e+06
+Leuven_1_0050698,23191,14504,7003,6980,4097,4262,7357,7293,1981,1467,4179,4514,2197,2129,821,977,1.42804e+06
+Leuven_1_0050699,6758,5970,7675,8090,4920,4997,7596,7643,2313,1892,4803,4445,2077,2373,1022,1011,1.4333e+06
+Leuven_1_0050700,5862,5153,7647,7981,5096,5220,8020,8235,2322,2125,5205,5483,2111,2303,1033,1185,1.40709e+06
+Leuven_1_0050701,3039,7744,6346,6450,3596,3683,7103,6837,2001,1420,4787,4324,1919,1745,908,1088,1.0783e+06
+Leuven_1_0050702,10564,15486,9001,8133,5409,5921,9003,8145,2657,1860,4643,4742,2741,2417,1388,1451,1.38307e+06
+Leuven_1_0050703,6497,5106,6442,7330,4564,4138,6560,6757,1829,1459,4215,4454,2231,2260,1083,1055,1.345e+06
+Leuven_1_0050704,10248,9451,7836,8136,4558,5008,8483,7926,2329,1895,4849,5140,2397,2465,1058,1266,1.3144e+06
+Leuven_1_0050705,8556,9831,6431,6425,3975,4044,6246,6114,1916,1496,4489,4095,1914,1780,806,819,1.10994e+06
+Leuven_1_0050706,5610,5859,7223,7844,3972,4135,7658,7170,2197,1823,4629,4829,2196,1841,931,1117,1.12198e+06
+Leuven_1_0050707,5918,4022,6851,7307,3739,3918,6609,6624,1832,1502,4179,4378,2200,1993,837,992,1.0287e+06
+Leuven_1_0050708,3150,3677,7005,7207,3821,3856,7436,7170,2499,1842,5078,4830,2662,2660,1026,1129,1.03082e+06
+Leuven_1_0050709,9855,8257,7023,7284,4795,4999,7101,6796,1842,1499,3958,3932,2213,2277,1082,1020,1.46014e+06
+Leuven_1_0050710,6747,7027,6537,6711,3911,4090,6775,6308,1717,1348,4819,4777,1989,2056,835,949,1.08851e+06
+Leuven_1_0050711,14989,17431,7474,7653,3751,3743,6897,6844,1929,1703,3970,3958,2040,2151,798,987,1.37441e+06
+Leuven_2_0050722,6081,4146,6286,6909,4429,4449,7814,7280,1940,1390,4126,4502,2238,2141,1120,1264,1.22363e+06
+Leuven_2_0050723,4287,3323,6527,6882,4470,4498,8282,7552,2023,1673,4156,4340,2297,2326,916,1074,1.15728e+06
+Leuven_2_0050724,5849,4580,7044,7527,4659,4718,7373,7570,1952,1481,5030,4970,2389,2693,1189,1208,1.12361e+06
+Leuven_2_0050725,8189,12134,7369,7569,4286,4667,7529,7592,2360,1733,4862,4843,2063,1915,1173,1334,1.31271e+06
+Leuven_2_0050726,7671,4841,7368,8205,4370,4394,7239,7097,2045,1976,4873,5041,2241,2628,969,1021,1.21103e+06
+Leuven_2_0050727,6592,5181,6661,6897,3225,3528,6853,6648,1722,1425,3937,3892,1859,1733,748,926,1.11621e+06
+Leuven_2_0050728,4555,2945,6656,7241,3376,3625,6815,6570,2024,1625,4157,4100,1650,1613,720,810,1.00576e+06
+Leuven_2_0050730,3145,2519,6158,6755,3078,3386,7383,7262,1750,1434,4338,4422,1829,2008,941,1017,1.18083e+06
+Leuven_2_0050731,12357,18366,7167,7246,4343,4771,7133,6675,2052,1496,4093,4411,1899,2132,1055,981,1.54731e+06
+Leuven_2_0050732,7455,5986,8656,8392,4333,4372,8525,8141,2689,1913,5390,5216,2291,2353,1206,1042,1.59295e+06
+Leuven_2_0050733,5436,5187,7918,7895,4308,4518,8086,7886,2382,1986,4507,4686,2235,2303,1026,1041,1.10179e+06
+Leuven_2_0050734,5457,3602,6383,6462,3700,3628,6454,6306,1873,1421,3651,3916,1622,1778,922,1154,1.00783e+06
+Leuven_2_0050735,2419,2427,5947,6462,3531,3709,7227,7040,1969,1466,4388,4271,1810,1930,1120,1025,843647
+Leuven_2_0050736,2388,2616,7057,7307,3583,3810,7452,7024,1887,1833,3474,3879,2380,2247,913,942,968508
+Leuven_2_0050737,8980,4739,8185,9060,4402,4475,9540,9098,2260,2039,4421,4873,2491,2579,1321,1387,1.2552e+06
+Leuven_2_0050738,2627,3177,6916,7026,3952,4421,8349,7813,1955,1599,4351,4484,2135,2123,966,959,1.11375e+06
+Leuven_2_0050739,3826,4199,7757,8127,4026,4228,8253,7815,2265,1863,4897,5031,2618,2468,951,1209,1.19977e+06
+Leuven_2_0050740,5843,5895,7427,8069,4134,4229,7489,7480,1969,1727,3919,3907,2252,2021,869,987,1.13202e+06
+Leuven_2_0050741,4446,4474,7509,7834,4334,4517,7975,7780,2198,1867,4210,4447,2320,2151,1016,1141,1.07993e+06
+Leuven_2_0050742,2768,2427,7270,7303,3920,4303,7972,7625,2157,1650,4912,4822,2234,2544,1103,1184,1.25613e+06
+Leuven_2_0050743,4765,4558,6368,6728,3393,3515,6939,6838,2002,1590,3953,4078,1956,2084,852,1042,995366
+Leuven_2_0050744,5389,6331,6585,6429,4003,4000,7127,6459,1594,1560,2188,3427,1374,1622,776,1065,1.00657e+06
+Leuven_2_0050745,3083,2087,5906,6322,4159,4322,7785,7657,1819,1708,4149,4326,2300,2371,1046,1239,1.01373e+06
+Leuven_2_0050746,3948,3565,6291,6198,4620,4848,7147,6429,1981,1662,4373,4461,1933,1940,858,932,1.02694e+06
+Leuven_2_0050747,3436,2350,8187,8136,3623,4127,8346,8328,2334,2012,4445,4964,2651,2608,1330,1082,1.07195e+06
+Leuven_2_0050748,3706,2850,6423,6506,3812,3934,7041,6808,1908,1788,4095,4190,2338,1949,947,1026,1.23973e+06
+Leuven_2_0050749,3963,1944,7185,7667,4278,4529,7187,7458,1715,1551,4211,4720,2103,2130,1022,1066,1.0193e+06
+Leuven_2_0050750,6305,6725,7817,8039,4224,4681,8157,7941,2240,1937,4909,4784,2354,2481,1221,1212,1.42935e+06
+Leuven_2_0050751,2309,2689,6755,7064,3759,4293,7645,6657,1845,1567,3979,4007,2384,1858,1040,1265,1.22759e+06
+Leuven_2_0050752,11070,10845,7031,7036,4385,4546,6827,6574,1764,1352,4143,4353,2412,2442,944,949,1.34626e+06
+Leuven_2_0050753,11594,11990,6840,6551,4477,4692,8494,7978,2251,1811,4800,4869,2471,2444,1132,1200,1.22599e+06
+Leuven_2_0050754,5549,4391,7683,8312,5381,5671,9341,8161,2414,2371,4849,5031,2648,2079,1196,1169,1.23043e+06
+Leuven_2_0050755,4257,4875,7139,6904,4344,4488,6997,6867,2071,1525,4856,5197,2290,2087,996,1035,1.25672e+06
+Leuven_2_0050756,8137,12145,7809,7672,4352,4582,7536,7008,1917,1614,4069,4126,2968,2456,962,1117,1.27731e+06
+Leuven_2_0050757,7088,8937,6228,6477,3843,3941,7492,7097,1624,1403,3894,4258,2670,1814,1000,1070,1.20271e+06
+MaxMun_a_0051318,3276,4780,7182,7421,3930,4508,6459,6250,1884,1682,4465,4594,2041,1923,685,657,1.35357e+06
+MaxMun_a_0051319,8272,9200,7438,7599,4095,4094,6015,5850,1988,1697,4558,4610,1965,2010,744,854,1.62765e+06
+MaxMun_a_0051320,8173,5996,7859,7709,4375,4490,6602,6084,2058,1815,4301,4650,2233,2479,857,737,1.50591e+06
+MaxMun_a_0051321,4378,5217,6178,6115,3212,3283,5544,5185,1101,1483,3950,4078,1695,1351,601,685,1.02474e+06
+MaxMun_a_0051362,6862,6702,6098,6639,4309,4273,5647,5087,1895,1598,4184,4283,1648,1762,560,702,1.2949e+06
+MaxMun_a_0051363,7879,4884,6064,6145,3503,3388,5009,4879,1601,1335,4012,4190,1577,1528,530,513,1.15003e+06
+MaxMun_a_0051364,11845,12075,7582,7925,4089,4183,6624,6093,1956,1724,4307,4513,1929,2092,723,887,1.63263e+06
+MaxMun_a_0051365,11461,8592,6798,7003,3484,3426,6025,5364,1651,1515,3642,4261,1639,1725,537,667,1.30277e+06
+MaxMun_a_0051366,16871,11096,7232,7667,5044,5091,6898,6632,2263,1734,4864,4797,2014,2071,714,987,1.58171e+06
+MaxMun_a_0051367,6770,7452,7039,7536,3893,4049,6358,6037,1856,1624,4802,4914,1745,1915,531,717,1.41297e+06
+MaxMun_a_0051368,6525,7034,6730,7645,4264,4318,6461,5827,1979,1705,4754,4822,2533,2211,839,770,1.51094e+06
+MaxMun_a_0051369,5950,8986,7524,7136,3723,3914,5877,5609,1848,1604,4855,5202,1788,2153,724,692,1.55736e+06
+MaxMun_a_0051370,7336,4473,6992,7702,4740,4607,7136,6505,1770,1462,4413,4384,2023,1862,774,890,1.52795e+06
+MaxMun_a_0051371,10686,8106,6747,6956,3783,3952,6134,5358,1895,1553,3896,4361,1638,2040,699,810,1.45354e+06
+MaxMun_a_0051372,5680,4014,6655,6767,3553,3460,5317,5031,1573,1304,3684,3743,1760,1479,726,782,1.00702e+06
+MaxMun_a_0051373,6639,4493,8618,9100,5077,4808,7915,7332,2043,1720,5212,5347,2307,2232,923,1111,1.70633e+06
+MaxMun_a_0051606,7462,7720,7307,6510,3685,3733,5417,5363,1571,1552,3687,3862,1830,1702,654,600,1.35403e+06
+MaxMun_a_0051607,8499,6022,8913,8903,4760,4776,6697,6023,2149,1908,4772,5045,2186,2313,815,899,1.49767e+06
+MaxMun_b_0051322,5930,4888,7188,7017,2907,2776,4900,3784,1487,1269,4298,4278,1735,1474,712,796,1.26951e+06
+MaxMun_b_0051323,7451,6146,7429,7445,3331,3516,7206,6627,1695,1540,4951,4639,1947,2121,798,874,1.4929e+06
+MaxMun_b_0051324,12419,14365,6038,6269,4147,4136,5773,4899,1786,1528,4140,4510,1554,1586,639,697,1.35422e+06
+MaxMun_b_0051325,8523,6352,6335,6805,3771,3869,5586,5254,1808,1405,4494,4671,1951,1980,737,785,1.22171e+06
+MaxMun_b_0051326,5858,7186,7600,7891,4021,4151,6585,6539,1959,1750,4857,4922,2103,1945,590,739,1.53274e+06
+MaxMun_b_0051327,20758,6558,7017,8034,3633,3804,5637,5370,2121,1741,3998,5352,2526,2444,818,857,1.50941e+06
+MaxMun_c_0051328,3797,3358,8153,8646,5017,4831,7477,6947,2161,1759,5117,5402,2018,2055,919,985,1.28311e+06
+MaxMun_c_0051332,9168,8429,9569,10171,5169,4554,6461,6033,1928,1783,4972,5024,1967,1994,612,707,1.96175e+06
+MaxMun_c_0051333,5601,9978,8016,7895,4538,4143,5281,5531,1868,1625,5050,4933,1863,1861,609,618,1.67338e+06
+MaxMun_c_0051334,4736,5012,8997,9444,4112,3359,4753,5320,1873,1580,4048,4243,1695,1684,481,546,1.85253e+06
+MaxMun_c_0051335,6190,6485,7145,7865,3843,3725,5179,4854,1650,1557,4598,4357,1595,1440,606,633,1.48751e+06
+MaxMun_c_0051336,10999,9588,7331,8162,3289,3493,5796,5097,1783,1417,5252,5360,1765,1793,591,665,1.65986e+06
+MaxMun_c_0051338,2463,4978,6880,6791,4024,4361,5649,5311,1671,1451,4487,4272,1718,1783,637,830,1.4208e+06
+MaxMun_c_0051339,5692,6551,7559,8368,4405,4602,7303,6522,2199,1781,4338,4817,2075,2266,974,781,1.53546e+06
+MaxMun_c_0051340,9959,8904,8330,8299,3546,3692,6224,5678,1733,1668,4153,4504,1893,1928,614,682,1.49055e+06
+MaxMun_c_0051341,5301,5234,7476,7414,3281,3334,5329,4996,1765,1666,4382,4812,1989,1882,697,606,1.35531e+06
+MaxMun_c_0051342,8516,7924,7156,7929,3650,3800,6323,5809,1943,1656,3984,3750,1933,1677,478,737,1.43053e+06
+MaxMun_c_0051343,6829,9753,7726,7740,4157,4345,6132,5787,1812,1673,4176,4208,1929,1859,734,814,1.62507e+06
+MaxMun_c_0051344,6292,6210,7015,6921,4172,4161,6958,6460,1827,1537,4617,4738,1888,2322,832,954,1.22802e+06
+MaxMun_c_0051345,5847,11323,6605,7379,3787,3842,5292,4868,1805,1421,4072,4031,1745,1652,763,666,1.40122e+06
+MaxMun_c_0051346,5163,6645,6971,7437,3485,3526,5326,4885,1428,1227,3969,3758,1603,1678,648,669,1.32752e+06
+MaxMun_c_0051347,2981,2835,6501,7672,4145,4110,6485,5947,1879,1539,4866,4877,2217,2093,890,876,1.66774e+06
+MaxMun_c_0051348,10581,9581,7533,7959,4219,4366,6470,6641,1824,1629,4344,4453,1634,1616,728,1039,1.48077e+06
+MaxMun_d_0051329,4178,3917,7700,8309,3987,4097,6288,5844,1885,1770,5275,5143,1939,1855,815,704,1.23076e+06
+MaxMun_d_0051330,5900,7581,8430,8767,3963,3950,6153,5585,1811,1586,4966,4972,1878,1811,456,663,1.61994e+06
+MaxMun_d_0051331,8692,9633,7348,8048,4186,4045,5940,5622,2038,1738,4757,4782,1810,1801,684,799,1.68493e+06
+MaxMun_d_0051349,6033,5445,7058,7439,4125,4476,6744,6945,1855,1447,4426,4433,2249,1786,930,863,1.23825e+06
+MaxMun_d_0051350,3657,5426,7584,6697,3694,4140,7219,6775,2151,1774,4916,4827,1655,1440,775,838,1.61286e+06
+MaxMun_d_0051351,5915,9180,8272,7535,4373,4279,6535,6396,1630,1656,4796,4769,2122,1826,479,781,1.54323e+06
+MaxMun_d_0051352,3341,2961,6917,7025,3625,3394,6460,6305,1864,1604,4305,4313,1587,1393,536,774,1.31162e+06
+MaxMun_d_0051353,8050,4089,6275,6581,3871,3303,6806,6481,1766,1534,4206,4495,1769,1929,355,810,1.50539e+06
+MaxMun_d_0051354,1779,2540,7056,7562,3289,3416,6650,6342,1742,1525,4100,4120,1851,1754,807,694,1.23094e+06
+MaxMun_d_0051355,2390,2623,7261,7136,3358,3878,5241,5093,1269,1322,4042,4203,1622,1485,569,718,1.08539e+06
+MaxMun_d_0051356,5313,4912,7883,7922,4431,4537,6564,6207,1770,1648,4317,4734,1922,1707,953,912,1.67336e+06
+MaxMun_d_0051357,4559,5800,7017,7404,4208,4301,6423,6131,2022,1673,4274,4349,1742,1603,858,882,1.53731e+06
+MaxMun_d_0051358,1647,2185,7095,6594,3532,3433,6410,5658,1817,1411,4559,4709,1550,1341,702,889,1.39237e+06
+MaxMun_d_0051359,4778,6853,6601,6797,4590,4882,6046,6018,2014,1774,4677,4546,1894,1841,713,839,1.56892e+06
+MaxMun_d_0051360,14286,11025,8336,7586,4445,4273,6594,6280,2030,1883,4709,4566,2309,2104,644,826,1.48187e+06
+MaxMun_d_0051361,4464,3955,7877,8287,3667,3450,6538,5871,1913,1532,4607,4632,2024,1690,627,831,1.21288e+06
+NYU_0050952,11687,7112,6836,6774,3905,4094,6517,6531,1658,1552,3749,3894,1564,1627,817,925,1.19068e+06
+NYU_0050953,5862,13448,6146,6871,3443,3973,6424,6627,1806,1537,3477,3619,1228,1699,740,796,1.36413e+06
+NYU_0050954,2540,2295,5261,5682,4264,4189,5866,5684,1824,1454,3341,3235,1375,1319,934,674,777776
+NYU_0050955,4344,5421,6219,5989,4458,5031,6849,6794,1825,1707,3107,3178,951,1232,1044,780,248695
+NYU_0050956,2553,2630,6442,6172,3732,4104,6629,6218,1825,1536,3724,3977,1622,1770,814,837,861007
+NYU_0050957,4188,3740,6140,5884,3089,3140,6062,5679,1724,1594,2987,3452,1319,1639,761,578,1.10469e+06
+NYU_0050958,8614,8204,5909,6090,3596,3834,7091,6790,1894,1727,3189,3148,1235,1468,728,674,1.22274e+06
+NYU_0050959,2177,2172,5217,5583,2772,3018,5964,5468,1579,1525,2971,3183,1241,1297,712,662,820408
+NYU_0050960,3151,3339,6285,5826,3074,3564,6374,5925,1686,1630,3561,3450,1590,1501,812,836,890602
+NYU_0050961,13513,7156,6015,6304,3068,3277,5752,5602,1470,1396,2754,3693,1369,1594,662,621,1.13395e+06
+NYU_0050962,7487,6722,5370,5632,3434,3528,4863,4870,1691,1643,3264,3365,1401,1131,546,583,992579
+NYU_0050964,6788,5941,6444,6845,4012,4345,6793,6607,1898,1783,3889,3965,1450,1467,927,765,1.14323e+06
+NYU_0050965,4696,4245,7782,7635,4125,4525,6837,7019,2126,1905,3727,3957,1336,1226,829,841,1.2104e+06
+NYU_0050966,4476,3946,7750,7562,4090,4294,6629,6059,2086,1974,3286,3416,1311,1381,976,917,950371
+NYU_0050967,3738,3765,6079,6261,3990,4277,6972,6482,1941,1623,3246,3631,1430,1336,770,716,847234
+NYU_0050968,3527,3531,7078,7313,3986,4193,8491,8380,2176,1989,4319,4148,1693,1705,955,862,1.40352e+06
+NYU_0050969,3886,3242,5734,5963,3479,3629,6852,6744,1662,1405,3458,3442,1194,1331,914,840,936450
+NYU_0050970,6954,9858,6959,6819,4689,4867,7537,7239,2098,1774,4418,3964,1379,1493,884,960,1.18526e+06
+NYU_0050971,3248,3261,6513,7046,4101,4490,6228,5775,1924,1722,3593,3737,1578,1746,825,722,1.01595e+06
+NYU_0050972,4560,3585,8920,8845,4174,4351,7791,7578,2224,2001,5057,5285,2613,3055,1101,1069,1.82312e+06
+NYU_0050973,8675,6519,6948,6940,3816,3956,6163,6131,1650,1515,3535,3733,1464,1623,900,949,1.07076e+06
+NYU_0050974,2864,3511,6524,7176,3774,4061,6800,6781,2010,1733,3953,3940,1460,1495,832,898,1.31937e+06
+NYU_0050975,4866,8217,6818,7552,4052,4424,6914,6882,2416,2256,3876,3929,1536,1613,735,704,1.04595e+06
+NYU_0050976,3914,3082,7352,7940,4524,4352,6723,6767,2084,1632,3922,4057,1581,1430,845,801,1.29212e+06
+NYU_0050977,2888,2675,7411,7749,4929,5199,7951,7828,2138,2056,4125,4136,1777,1942,1041,980,1.372e+06
+NYU_0050978,3600,3464,6688,6905,4150,4476,7630,7544,2018,1750,3844,3826,1492,1634,739,792,936954
+NYU_0050979,17616,14511,7340,7393,4246,4337,7692,7449,1976,1747,3810,3889,1672,1396,915,1000,1.3939e+06
+NYU_0050980,3871,3050,6310,6539,4297,4188,7504,7035,1836,1744,3835,4322,1418,1771,948,868,1.22949e+06
+NYU_0050981,3624,2417,6886,6641,4000,4093,6537,6287,1602,1419,2822,3692,1288,1246,619,823,1.02261e+06
+NYU_0050982,4443,5222,7605,7773,4658,4651,6973,6223,1944,1662,4535,4604,1451,1249,630,641,1.22873e+06
+NYU_0050983,5554,3619,6991,7481,4594,4790,7560,7509,2178,2066,4039,4402,1629,2105,976,999,1.52724e+06
+NYU_0050984,26457,11682,7182,7355,3916,3940,6049,5672,1536,1348,3630,3870,1563,1534,708,707,1.52296e+06
+NYU_0050985,4360,4173,7406,7650,4528,5002,8078,8064,2030,1777,4223,3992,1527,1706,929,890,1.08254e+06
+NYU_0050986,2592,3057,5989,6476,3732,3770,7056,7248,1881,1650,3366,3144,1461,1449,860,704,951803
+NYU_0050987,3305,1533,6491,6958,3798,3723,6560,6757,1692,1521,3332,3713,1398,1478,831,989,1.23687e+06
+NYU_0050988,7145,7048,7000,7323,4362,4521,7170,6512,2191,1985,4118,4452,1639,1552,738,625,1.12436e+06
+NYU_0050989,3313,8375,7185,7368,4469,4962,7933,7566,2102,1782,4268,4433,1662,1842,1052,1045,1.37256e+06
+NYU_0050990,8032,4004,7870,8737,4632,4773,8098,7540,2439,1910,4586,4821,2267,2443,1107,1215,1.68359e+06
+NYU_0050991,3268,2886,5178,5296,3630,3961,5733,5697,1661,1441,3544,3374,1273,1539,912,869,809418
+NYU_0050992,3633,2553,6992,6473,3772,3935,7340,7075,1981,1739,3705,3933,1521,1652,876,773,1.27262e+06
+NYU_0050993,3612,3365,6743,7008,3806,4037,7849,7156,2105,1852,3869,3630,1389,1617,903,700,1.28502e+06
+NYU_0050994,4036,4335,6842,6880,4045,4393,6868,6365,2080,1801,3847,3724,1330,1325,901,1006,932556
+NYU_0050995,11224,9443,6524,6770,3576,3810,7132,7345,1825,1528,4153,4083,1539,1840,946,938,1.18566e+06
+NYU_0050996,8262,7437,7494,7705,4089,4311,6276,6073,2183,1905,4309,4469,1636,1456,726,778,1.15591e+06
+NYU_0050997,6578,5395,9849,9763,4883,5405,8598,8120,2486,2126,4802,4873,2163,2285,979,928,1.40693e+06
+NYU_0050998,3422,3087,6731,7625,5110,5264,8327,7548,2385,2137,3423,3443,1541,1387,969,789,1.06416e+06
+NYU_0050999,2822,5129,6097,6668,3825,4180,7303,6729,2129,1802,3923,3469,1418,1581,981,853,1.12429e+06
+NYU_0051000,3817,3612,6170,6486,3578,3615,7101,6812,1884,1590,3538,3558,1565,1591,873,1081,1.21612e+06
+NYU_0051001,14356,16065,6744,6478,4956,5071,6127,6014,1585,1378,3414,3710,1834,1938,885,768,1.14599e+06
+NYU_0051002,7797,4940,6732,7209,4236,4333,6506,6474,1930,1824,4174,4200,1292,1492,873,701,1.21682e+06
+NYU_0051003,9732,9986,7242,7482,4773,4942,6404,6171,2022,1896,3787,3618,1306,1221,801,836,1.14491e+06
+NYU_0051006,6390,5400,7637,7880,4680,4835,7181,6719,2026,1847,3164,3208,1379,1527,835,815,1.08214e+06
+NYU_0051007,3997,3043,5581,5959,3907,4128,6196,6057,1979,1725,3363,3320,1293,1275,734,862,854874
+NYU_0051008,5391,6995,7743,7344,4163,4464,7117,6987,1764,1777,4308,4768,1658,2369,1013,876,645354
+NYU_0051009,2116,2094,7040,7274,4543,4397,7979,7579,2197,2004,4444,4755,1842,2226,889,915,1.43909e+06
+NYU_0051010,3222,2381,6914,7126,3996,4161,8087,7226,1854,1527,4022,4230,1538,1724,1027,1085,1.37504e+06
+NYU_0051011,5189,7790,7109,7067,4540,4620,8124,7497,2093,1891,4550,4121,1442,1508,983,1134,1.11567e+06
+NYU_0051012,2578,2829,6754,6894,3928,4604,7131,7019,2009,1802,3337,3405,1332,1409,792,821,1.16266e+06
+NYU_0051013,4423,4586,5667,5834,3139,3235,5690,5475,1692,1424,3234,3434,1423,1376,738,817,1.13076e+06
+NYU_0051014,4997,4402,7517,7915,4177,4513,8227,7946,2104,2166,4147,3917,1592,1991,1028,851,1.25759e+06
+NYU_0051015,5013,5356,7911,8167,4181,4610,6999,6822,2045,1792,4362,4144,1533,1634,1116,852,1.0468e+06
+NYU_0051016,7155,10796,8029,8499,4187,4394,8146,8467,1989,1783,4339,4602,1707,2111,970,878,1.5312e+06
+NYU_0051017,2477,2597,6587,7039,3323,3693,7032,6841,1819,1466,4415,4425,1412,1601,846,896,1.16093e+06
+NYU_0051018,3500,4785,7626,7965,4194,4576,6685,6551,1917,1752,4307,4431,1446,1691,885,887,1.15874e+06
+NYU_0051019,6543,6642,8316,7667,3976,4099,7217,7361,2002,1776,4258,4381,1651,1548,969,764,1.49713e+06
+NYU_0051020,9480,11928,5679,6669,4698,5228,6692,6643,1769,1623,3880,3911,1460,1612,757,544,1.3996e+06
+NYU_0051021,7847,8087,7536,7137,3610,3865,6267,6404,1528,1489,4153,4269,1572,1521,619,595,1.39868e+06
+NYU_0051023,4605,3568,8172,8524,4386,4005,7363,7058,2042,1841,4467,4601,2061,1972,1226,752,1.12614e+06
+NYU_0051024,3961,3722,7491,7164,3381,3787,7221,6609,1863,1632,4088,4221,1582,1753,963,872,773326
+NYU_0051025,18018,12815,7810,8470,4925,4958,8002,7666,2186,1850,4776,5135,1659,1771,741,981,1.43172e+06
+NYU_0051026,3025,6453,7556,7427,3722,3691,6348,5939,1982,1669,4001,4207,1541,1596,884,1026,1.07624e+06
+NYU_0051027,5384,3398,6394,7297,3368,3008,7083,6426,1705,1345,4401,4551,2141,1909,1064,980,1.51245e+06
+NYU_0051028,4870,4515,6904,7454,3438,3518,6205,6044,1936,1812,4614,4875,2140,2165,865,884,1.3107e+06
+NYU_0051029,10270,10158,6493,6815,4721,4982,7922,7351,1775,1594,4764,4609,1697,1895,1043,978,1.36788e+06
+NYU_0051030,6920,3445,6757,6708,4417,4622,7334,7130,2147,1779,4189,3972,1587,1687,1008,955,1.38698e+06
+NYU_0051032,4492,3270,6508,6549,3829,4022,6072,6200,1774,1546,3581,3498,1089,1350,876,892,1.14996e+06
+NYU_0051033,5242,4766,6885,6119,3682,3955,5796,5751,1884,1861,3828,3709,1015,1177,642,562,1.02568e+06
+NYU_0051034,2254,2899,7425,8102,3700,4015,6863,7314,2107,2062,4313,4727,1520,1744,825,825,1.28473e+06
+NYU_0051035,6045,7028,6610,6787,3940,3863,6588,6148,1935,1575,4015,3843,1465,1495,732,870,1.15497e+06
+NYU_0051036,4168,5429,5830,6249,3439,3817,5751,5718,1542,1441,3287,2991,1213,1255,816,675,965877
+NYU_0051038,3598,4342,6914,7235,4690,4984,7687,7506,2226,2009,4349,4088,1236,1397,962,949,1.25155e+06
+NYU_0051039,2535,2298,5646,5796,3493,3614,7436,7103,1966,1744,3647,3785,1283,1264,816,760,1.12917e+06
+NYU_0051040,3832,3153,6329,6399,4011,4231,6770,6552,1802,1668,3617,3503,1398,1565,769,863,1.22072e+06
+NYU_0051041,4094,3199,5530,5885,4117,4183,5974,5699,1666,1572,3495,3369,1341,1394,724,831,1.00252e+06
+NYU_0051042,4086,3073,5561,5795,2939,3148,5501,5002,1586,1256,3232,2981,871,818,562,648,415431
+NYU_0051044,6058,4560,8665,7883,5011,5254,6921,6662,2044,1815,3834,3737,1342,1404,941,1051,1.0334e+06
+NYU_0051045,2726,2259,6641,7103,3188,3504,6541,6332,1959,1777,3167,2951,1406,1383,1067,890,809789
+NYU_0051046,7369,6639,6398,6542,3871,4264,5953,5663,1700,1402,3540,3898,1300,1445,744,750,1.08508e+06
+NYU_0051047,3408,3077,6566,6851,3850,4218,6473,6366,1785,1686,3524,3654,1380,1959,942,820,1.04075e+06
+NYU_0051048,5572,7319,6592,6645,4010,4307,6399,6600,1773,1660,4078,4263,1671,1656,743,810,1.41079e+06
+NYU_0051049,4708,4852,5832,6011,4370,4397,6161,5867,1976,1621,3425,3403,1274,1301,879,879,1.06267e+06
+NYU_0051050,9267,10300,6877,6949,3469,3831,5330,5164,1628,1466,3329,3284,1297,1367,792,829,1.18483e+06
+NYU_0051051,2922,2716,5338,5571,3827,3817,5926,5817,1795,1642,3625,3621,1201,1361,762,719,810432
+NYU_0051052,3940,2287,5734,5880,4037,3700,6240,5829,1828,1659,3882,3819,1443,1425,745,933,938694
+NYU_0051053,15380,13669,6776,7433,4091,4333,5809,5641,1780,1601,3712,3865,1679,1590,682,727,1.49577e+06
+NYU_0051054,3654,2954,7384,7687,3709,3827,7400,7173,1830,1629,3893,3996,1355,1590,739,867,1.06542e+06
+NYU_0051055,4933,3745,5553,5936,3182,3490,5066,5064,1625,1569,4141,4162,1389,1306,765,674,1.12372e+06
+NYU_0051056,2755,4804,6701,6992,3783,4145,6713,6458,1798,1519,3840,3633,1417,1546,782,887,995145
+NYU_0051057,5613,2846,6845,7153,3990,4053,6665,6306,1970,1753,4234,3973,1507,1410,927,900,997676
+NYU_0051058,2546,2629,6511,6635,3804,3946,5971,5955,1901,1461,3946,3986,1346,1426,848,774,821625
+NYU_0051059,7951,5182,6424,6475,3402,3458,5201,4992,1589,1486,3410,3596,1254,1281,639,707,852857
+NYU_0051060,7299,10507,6341,6831,3427,3686,6114,6170,1757,1483,3839,4009,1575,1576,789,585,1.01856e+06
+NYU_0051061,3631,3102,5888,5976,3273,3282,5871,5797,1829,1539,3618,3538,1400,1414,890,578,1.09779e+06
+NYU_0051062,8021,6526,6278,6052,3421,3825,5626,5459,1500,1341,3452,3450,1288,1367,682,683,866602
+NYU_0051063,9163,8083,7002,7036,4252,4505,6434,6190,1947,1717,4119,4318,1735,1731,803,866,1.05973e+06
+NYU_0051064,6067,4298,6664,6326,3523,3859,6656,6497,1779,1362,3560,3625,1329,1522,706,711,962314
+NYU_0051065,3287,2485,5824,6286,4239,3867,7896,7941,2135,2021,3668,3761,1491,1938,981,927,1.16696e+06
+NYU_0051066,5400,5793,7075,6706,3963,4157,6396,5913,1974,1669,3892,4105,1632,1257,888,663,1.01803e+06
+NYU_0051067,4382,4240,7473,7757,4499,4428,6790,6443,2053,1604,4334,4105,1712,1983,997,952,1.22188e+06
+NYU_0051068,2825,5507,6241,6249,3321,3538,5880,5712,1623,1380,3667,3922,1796,1827,780,850,1.32106e+06
+NYU_0051069,4466,2780,7426,7548,4814,4601,7353,7059,2129,1918,3510,3655,1312,1429,944,843,1.32255e+06
+NYU_0051070,3012,3588,7436,7856,4335,4993,7264,7580,2085,1966,4370,4456,1576,1564,862,952,1.28064e+06
+NYU_0051071,4051,2854,6450,6470,3746,3560,5820,5826,1890,1586,4140,3855,1313,1388,653,796,1.1114e+06
+NYU_0051072,5764,7393,6384,6041,3550,3705,5968,5950,1789,1691,3433,3390,1225,1526,676,825,1.31963e+06
+NYU_0051073,5898,5080,5674,5945,3609,3719,6496,6373,1506,1443,3894,3845,1182,1268,629,574,869924
+NYU_0051074,4684,4123,8035,8260,5257,5661,7731,7584,2393,1941,3988,3944,1745,1568,1014,903,1.20745e+06
+NYU_0051075,3951,4294,7275,7015,4039,4224,7502,6973,1926,1530,4128,4222,1189,1339,916,815,1.28183e+06
+NYU_0051076,3887,4698,7777,8425,4034,4065,6850,6835,1966,1633,4811,4423,1654,1656,887,937,1.15201e+06
+NYU_0051077,4942,4073,7735,7083,3821,4174,7049,6519,2005,1654,4162,4075,1615,1706,784,786,1.15778e+06
+NYU_0051078,2571,2650,6907,7020,4173,4318,6230,6394,1774,1710,3283,3950,1483,1430,911,864,1.08314e+06
+NYU_0051079,14273,10422,5838,5906,4061,4222,6875,6773,1670,1566,3489,3753,1338,1337,824,797,1.11058e+06
+NYU_0051080,3666,3461,5970,6460,4718,5378,7529,7144,2019,1985,2134,4261,772,1720,991,848,1.20727e+06
+NYU_0051081,4791,4729,6478,6708,4466,4494,6562,6443,2008,1713,3369,3237,1541,1549,1023,811,1.09923e+06
+NYU_0051082,7376,8502,5696,6044,4197,4342,7007,6613,1778,1559,4135,3713,1557,1882,968,1082,1.41921e+06
+NYU_0051083,3967,3700,6512,6762,4362,4451,7349,7311,1816,1625,3867,4141,1540,1819,1068,1055,1.18988e+06
+NYU_0051084,4994,4717,6668,6802,4317,4184,6639,6856,1795,1487,3719,3774,1283,1428,641,756,949664
+NYU_0051085,4142,4083,8750,7912,4326,4681,7983,7493,2329,2123,3887,3979,1463,1516,821,938,1.19135e+06
+NYU_0051086,19679,19902,6719,7010,4911,5118,7172,6770,1914,1724,3763,4053,1752,1818,938,888,1.61842e+06
+NYU_0051087,5086,6186,7103,8038,4907,5062,8009,7826,1947,1834,4704,4736,1554,1604,1013,1000,1.43039e+06
+NYU_0051088,2856,2631,7146,6971,4265,4192,7389,7195,1841,1928,3746,3456,1430,1309,952,879,1.05116e+06
+NYU_0051089,2693,2370,6046,6295,3190,3550,7174,7079,1909,1818,3749,4095,1412,1598,828,733,1.12713e+06
+NYU_0051090,3437,3030,8163,8483,4737,4827,7768,7187,2250,1795,4757,4357,1954,1901,903,1058,1.31472e+06
+NYU_0051091,2523,1910,8080,8217,3940,4035,7772,7570,2161,1908,4852,4586,1940,2170,846,887,1.47825e+06
+NYU_0051093,3462,3125,5886,6030,3192,3467,6318,6422,1778,1504,3673,3707,1419,1582,829,792,1.05885e+06
+NYU_0051094,2949,2468,7010,7544,3821,4292,6570,6622,1953,1677,3681,3761,1909,1791,964,1031,1.2133e+06
+NYU_0051095,7259,5949,7297,7939,4508,4563,8679,8179,2346,2001,4437,3923,1316,1767,919,1027,1.11379e+06
+NYU_0051096,7374,3356,8135,8315,5081,5236,7456,7231,2350,2157,4111,4213,1678,1725,905,1023,1.17495e+06
+NYU_0051097,9541,9901,7319,7657,4932,5129,7747,7715,2079,1941,4413,4110,1672,1648,868,964,1.38438e+06
+NYU_0051098,3426,3333,7060,7067,4332,4510,6973,7086,2093,1703,4339,4360,1932,2238,970,993,1.16572e+06
+NYU_0051099,2720,2748,6740,7217,3384,3554,6774,6483,1883,1706,3255,3381,1535,1463,948,937,1.19244e+06
+NYU_0051100,5122,5067,7393,7744,3758,3896,7245,7069,2029,1831,3967,3910,1612,1706,802,730,1.32773e+06
+NYU_0051101,3093,3949,6731,6964,4368,4877,6020,6606,1957,1740,4006,4169,1843,2018,825,1013,1.19168e+06
+NYU_0051102,9332,7213,7826,8459,4404,4834,7148,6614,2054,1946,4255,4061,1880,1952,973,1007,1.20457e+06
+NYU_0051103,3790,3269,8182,8562,5131,5378,7946,7752,2183,1801,4448,4401,1817,1501,1001,965,1.25628e+06
+NYU_0051104,12903,8294,7645,7824,4953,4932,6815,7003,2149,1791,3871,4248,1669,1874,981,1201,1.26181e+06
+NYU_0051105,3484,2538,6624,6855,3436,3648,6415,6438,1818,1768,3519,3766,1520,1493,820,925,1.01577e+06
+NYU_0051106,4658,4216,7728,8864,4628,4622,7411,7219,2168,1953,3843,4471,2021,2132,945,912,1.13451e+06
+NYU_0051107,4084,3995,7773,7553,4402,4865,7858,7524,2146,1781,4492,4689,1994,2299,1054,812,1.36202e+06
+NYU_0051108,3925,3271,7024,7160,3867,3824,6774,6440,2086,1679,3684,4096,1699,1642,770,663,931095
+NYU_0051109,2865,2874,7492,8037,4710,4810,7782,7680,2057,1730,4211,4016,1687,1897,1013,1026,1.23353e+06
+NYU_0051110,12123,13114,7748,8548,4563,4732,7422,7478,2059,1895,4683,4773,2176,2201,902,674,1.62448e+06
+NYU_0051111,10512,7866,6645,7183,3899,4027,6882,6570,2073,1545,4572,5045,1946,1987,904,929,1.50464e+06
+NYU_0051112,5957,4326,7038,7392,4005,4151,6729,6283,1975,1782,4328,4386,1267,1406,947,753,862522
+NYU_0051113,3388,3298,6956,7911,3612,4180,7256,6873,2254,1980,3932,4193,1492,1590,920,831,1.15488e+06
+NYU_0051114,4774,4752,8312,8547,3559,3882,6965,6882,2122,1695,4476,4317,1496,1778,972,958,1.30864e+06
+NYU_0051115,10947,11426,7019,7479,4479,4813,7828,7381,2264,2010,4461,4496,1859,2029,952,909,1.45991e+06
+NYU_0051116,8229,8647,7383,6999,3589,3821,7665,7045,2096,1691,4215,4387,1777,1691,860,844,1.23661e+06
+NYU_0051117,4345,3881,6645,6466,4077,3770,6817,6504,1869,1642,4104,3997,1350,1550,832,759,1.26352e+06
+NYU_0051118,2140,1500,7340,7193,3072,3295,5625,5643,1279,1086,3203,3264,1316,1591,787,661,1.21782e+06
+NYU_0051119,6798,9683,8109,8613,4254,4378,7012,6496,1963,1551,4006,4172,1525,1747,1002,728,1.12377e+06
+NYU_0051120,3508,4446,7140,7393,4079,4113,6740,6574,1793,1639,3716,3818,1356,1382,883,716,1.11799e+06
+NYU_0051121,4780,4358,5889,6159,3866,3816,6645,6368,1696,1429,3793,3972,1268,1658,690,848,991436
+NYU_0051122,6427,4567,7689,7528,4098,4349,7379,7422,2211,1716,4585,4908,1608,2041,1068,939,1.50849e+06
+NYU_0051123,6247,7241,7489,6873,3975,4029,5986,6330,1685,1436,4081,4147,1414,1693,825,730,1.09465e+06
+NYU_0051124,12810,7620,7673,8107,5784,5906,8609,8082,2287,1942,4932,5347,1930,2273,1196,1150,1.70933e+06
+NYU_0051125,5784,5385,7660,7614,4320,4618,7014,6683,1927,1738,4728,4855,1588,1782,833,874,1.2916e+06
+NYU_0051126,2982,2877,6869,6535,2804,2725,6238,5974,1704,1406,4028,4091,1573,1671,843,877,1.26225e+06
+NYU_0051127,5703,4949,7891,8224,3982,3893,7295,6910,2193,1772,4779,4802,1667,2015,911,1019,1.1652e+06
+NYU_0051128,8193,8182,8295,8463,5074,5414,8102,7740,2418,1992,4518,4654,2051,2008,1142,1102,1.23924e+06
+NYU_0051129,5866,5725,5732,5940,4187,4283,6658,6422,1748,1359,3774,3882,1530,1486,756,749,948941
+NYU_0051130,7723,6801,6728,7332,4208,4486,6809,6973,2012,1826,3778,3978,1585,1716,779,653,1.30793e+06
+NYU_0051131,7332,7279,7076,8060,4026,4290,7091,6899,2055,1601,4388,4503,2170,2313,763,705,1.57262e+06
+NYU_0051146,8772,7391,7258,7557,4212,4488,7406,7138,2046,1778,4596,4703,2319,1936,1135,1136,1.54301e+06
+NYU_0051147,15661,14447,7235,7438,4431,4710,6751,6680,2025,1802,3845,3522,1627,1723,853,835,1.41903e+06
+NYU_0051148,5228,3943,6663,7171,3847,4056,5500,5546,1785,1601,3539,3472,1551,1735,723,686,903073
+NYU_0051149,4762,3794,6434,6754,3555,3842,6390,6197,1696,1555,3675,3799,1526,1886,890,815,1.22968e+06
+NYU_0051150,6965,5590,6550,7022,3373,3641,6549,6626,1923,1564,4874,4266,1591,1779,751,875,1.39007e+06
+NYU_0051151,4695,3898,7559,7249,4068,4295,7441,7362,2304,2029,4825,4654,1786,2043,1243,1202,1.51743e+06
+NYU_0051152,13903,13322,7074,7478,4519,4729,7077,6701,1854,1780,3500,3372,1756,1903,933,902,1.47959e+06
+NYU_0051153,8062,7620,6993,7280,3406,3930,6227,6066,1783,1482,4291,4095,1641,1765,663,815,1.40508e+06
+NYU_0051154,4614,3632,6902,6822,3985,3823,5794,5782,1590,1433,3203,3995,1166,1629,672,647,1.21478e+06
+NYU_0051155,3806,3036,7171,8318,3865,4071,7482,7283,2144,1965,4273,4263,1709,1954,986,720,1.41527e+06
+NYU_0051156,5296,4355,6782,6953,5168,4876,7588,7206,1981,1533,4333,4353,1837,1871,1065,1243,1.38209e+06
+NYU_0051159,2691,2691,6389,6943,4062,4437,6981,6693,2064,1647,4104,4296,1903,1770,756,826,1.35414e+06
+OHSU_0050142,6187,7045,7130,7394,4657,4663,7080,6482,2110,1539,4168,4046,2275,2045,818,1034,1.2259e+06
+OHSU_0050143,3852,4477,7028,7288,4485,4367,6653,6213,2054,1701,5303,5097,1848,1907,818,963,1.22575e+06
+OHSU_0050144,2736,2003,7926,8330,4175,4317,6851,6601,2244,2114,4195,4453,2129,2159,1044,994,1.2763e+06
+OHSU_0050145,3726,1896,7101,7472,3875,3614,6549,6334,1945,1721,3719,4182,1538,2001,780,764,1.17244e+06
+OHSU_0050146,6411,8180,7474,7976,5255,5403,7620,7227,2222,1947,4564,4243,1796,1876,1001,1167,1.418e+06
+OHSU_0050147,7362,6335,7490,7789,4179,4492,7869,7828,2165,1843,4464,4651,1834,1867,1016,893,1.33734e+06
+OHSU_0050148,5505,4099,8951,9146,4715,4910,8042,7400,2338,1842,4497,4688,1971,2154,785,1048,1.26832e+06
+OHSU_0050149,4509,3152,7954,8447,4048,4345,6930,6366,2227,1928,4629,4445,2019,1844,967,938,1.19086e+06
+OHSU_0050150,3088,2271,6445,6770,3834,3907,6886,6467,1762,1505,3581,3782,1791,2005,1031,858,1.26984e+06
+OHSU_0050152,3833,1692,6945,7399,3603,3718,6112,5856,1708,1475,4018,4694,2061,2089,880,1057,1.13568e+06
+OHSU_0050153,2261,7095,6990,6685,4013,4930,6999,6919,2126,1647,4278,4438,1704,1775,945,920,1.09073e+06
+OHSU_0050155,13608.3,10516.6,8732.7,8888.1,4277.5,4767.2,7068.7,6722.3,1954.4,1773.7,5091.1,5340.4,2243.9,1874,624.8,580.2,1.46722e+06
+OHSU_0050156,3181,2859,8602,7969,4287,4364,6853,6443,1920,1600,4703,4362,2101,1865,1002,1098,1.18466e+06
+OHSU_0050157,8223,11474,7324,7821,5200,5424,7867,6874,1965,1761,4916,4635,1558,1979,993,979,1.36339e+06
+OHSU_0050158,1955,2123,6583,6846,3789,3783,6535,6211,1804,1729,4499,4381,1544,1613,749,820,991368
+OHSU_0050159,3680,2596,7068,7318,3751,3688,6499,6372,1765,1554,3906,4127,1735,1759,873,920,1.08663e+06
+OHSU_0050160,4149,2796,7610,7524,3656,3697,7780,7344,1901,1622,4478,4730,2149,2004,975,980,1.28342e+06
+OHSU_0050161,3358,2424,6663,6615,4370,4075,6527,6624,1964,1735,3720,4100,1605,1834,947,963,1.06109e+06
+OHSU_0050162,4251,2378,5957,6582,3142,3084,5530,5395,1621,1328,3491,3489,1558,1624,772,1027,1.01884e+06
+OHSU_0050163,3979,3532,7867,7937,4716,4755,6406,6155,2093,1574,4639,4693,1904,2034,815,759,1.19101e+06
+OHSU_0050164,4309,3407,7052,6819,3749,3820,5884,5462,1803,1419,3960,3799,1632,1293,770,855,1.21452e+06
+OHSU_0050165,4498.5,3595.5,6563.3,7256.1,4693,4995.2,6481.3,6583.1,2106.5,1864.7,3950.9,4019.5,1838.1,1811.2,989.9,1093.8,1.09826e+06
+OHSU_0050166,5652,5411,6879,7424,3777,3993,6591,6091,1814,1594,4446,4150,1872,1843,793,717,1.18417e+06
+OHSU_0050167,4552,3812,6936,7064,3989,3959,7271,6354,1942,1622,4510,4128,1998,1957,909,880,1.26863e+06
+OHSU_0050168,2529,2608,7568,7560,4305,4388,6857,6975,1947,1719,3948,4122,1814,1708,904,859,1.12541e+06
+OHSU_0050169,4553,3757,6841,7376,3641,3661,6619,6459,1919,1592,4691,4608,1902,1963,865,732,1.25021e+06
+OHSU_0050170,3258,3145,6987,8018,3951,4005,7042,6700,1932,1664,5053,4816,2060,1993,862,880,1.21166e+06
+OHSU_0050171,4850,6558,6674,7203,3695,3872,6631,6547,1843,1533,4812,4614,1833,1813,936,959,1.35492e+06
+Olin_0050102,6454,4500,8035,7786,4172,4193,7018,6813,1662,1576,4155,4397,1894,1926,856,865,1.48495e+06
+Olin_0050103,3137,3744,7184,7815,4818,4439,8119,7253,1843,1653,4510,4701,1801,2044,802,941,1.34839e+06
+Olin_0050104,9948,18384,8869,8799,5611,5846,8042,7806,2058,2026,4522,4100,1878,2163,972,892,1.64996e+06
+Olin_0050105,1693,1080,7584,7525,3869,3765,6481,6480,1753,1626,4441,4509,1891,2268,746,783,1.25305e+06
+Olin_0050106,7479,5388,6986,7151,4001,4167,7023,6544,1875,1575,3371,4372,1711,1622,884,828,1.36386e+06
+Olin_0050107,5162,7612,8118,7927,4802,4857,8673,7650,1872,1781,4522,4553,1764,2289,1032,958,1.5205e+06
+Olin_0050108,8712,5116,6715,7129,3741,3390,7264,6988,1809,1525,4009,4345,1799,2019,924,1032,1.54629e+06
+Olin_0050109,3159,1891,7060,6578,3553,3332,6829,6594,1593,1490,4154,4165,1827,2085,838,861,1.24564e+06
+Olin_0050110,3243,2630,7217,7895,4191,4412,6904,7041,2052,1961,3799,3668,1665,1756,748,751,1.46392e+06
+Olin_0050111,2889,2595,7373,7925,4307,4001,8219,7785,2019,1789,4540,4880,1895,2151,810,817,1.25211e+06
+Olin_0050112,4280,9711,7164,7322,4003,4136,6508,6233,2043,1825,4322,4593,1698,1995,747,834,1.40151e+06
+Olin_0050113,3715,3634,6133,6099,3200,3374,6194,5959,1666,1523,3980,3886,1561,1793,704,742,1.31182e+06
+Olin_0050114,10964,11814,7301,7017,3987,3815,7095,6861,1744,1518,4060,4007,2138,2215,784,755,1.41682e+06
+Olin_0050115,7564,7591,6295,6300,4339,4405,6511,6301,1598,1529,3721,4010,1771,2002,792,795,1.22703e+06
+Olin_0050116,4000,5542,7886,7939,4188,4350,6988,6566,1877,1616,4466,4647,2029,2178,866,997,1.4644e+06
+Olin_0050117,4703,4780,6980,7466,3944,4159,7114,6454,1994,1617,4373,4430,1762,1859,843,969,1.32361e+06
+Olin_0050118,22856,26868,7136,8131,5338,5119,8056,7971,1986,1845,4399,4135,2013,2321,1064,967,1.64266e+06
+Olin_0050119,3009,1320,7017,8047,3710,3583,6825,6413,2025,1581,3879,3903,1438,1577,812,780,959050
+Olin_0050120,1898,1851,6051,6425,3536,3651,7458,6897,1599,1531,3931,4372,1359,1417,906,910,1.34232e+06
+Olin_0050121,6791,5976,8422,8605,5038,5386,7787,7562,2086,1854,4917,5271,1887,2463,1033,1024,1.54178e+06
+Olin_0050122,6488,6283,7061,7355,3555,3546,7905,7370,1711,1648,4297,4510,1504,1476,879,821,1.30091e+06
+Olin_0050123,12108,15904,7019,7415,4814,4760,7056,7335,1960,1827,4152,4289,2164,2178,937,896,1.42514e+06
+Olin_0050124,4253,6053,7120,7057,3888,4015,6178,5962,1731,1508,4749,4846,1659,2157,933,893,1.25211e+06
+Olin_0050125,3121,4124,6705,6892,3383,3579,5533,5458,1751,1657,3640,4074,1459,1499,704,628,1.34445e+06
+Olin_0050126,3529,3572,7246,7072,3788,4206,6074,6033,1949,1576,4397,4239,1765,1627,739,662,1.25032e+06
+Olin_0050127,3903,1685,6449,6712,4439,4200,7212,6629,1951,1684,3724,4102,1740,1555,862,778,1.18533e+06
+Olin_0050128,4600,3732,8131,7796,4522,4485,7549,7199,1975,1838,4092,4459,1848,2011,945,923,1.31877e+06
+Olin_0050129,3559,3795,6805,6603,3003,3149,6946,6395,1699,1509,3936,4049,1528,1678,783,783,960056
+Olin_0050130,12506,17667,7471,7947,4279,4257,7608,6964,2482,2156,4639,4099,2089,2101,750,721,1.50596e+06
+Olin_0050131,15389,9711,7089,7817,4218,4248,6804,6428,2116,1710,5105,5266,1823,1954,725,836,1.484e+06
+Olin_0050132,5969,3911,9343,9749,5741,5469,9438,8499,2482,2249,5973,6302,2596,2625,982,1092,1.75093e+06
+Olin_0050133,9043,6386,8737,8212,5338,5320,6723,6104,2203,2014,3669,4201,2033,2058,916,967,1.44323e+06
+Olin_0050134,3511,1881,7178,7035,3620,3358,7184,6916,1768,1602,4327,4591,1757,2046,713,778,1.20651e+06
+Olin_0050135,3447,5286,7274,7876,5038,5052,7650,7791,1886,1778,4533,4000,1481,1840,1167,1091,1.00017e+06
+Olin_0050136,9822,9119,8367,8248,4281,4180,6986,6406,1789,1848,4828,4035,2020,2064,722,1075,1.53182e+06
+Olin_0050137,7534,6644,7963,8517,5050,5323,7924,7791,2150,1911,5114,5121,2206,2745,956,940,1.55303e+06
+Pitt_0050002,5669,7450,7324,7569,4630,4855,7381,7108,2341,1837,4324,4166,1767,1792,850,935,1.17908e+06
+Pitt_0050003,6541,3077,8926,9432,4007,3654,6676,6538,2181,1791,4616,4873,1677,1794,579,644,1.1138e+06
+Pitt_0050004,6083,6675,7998,7940,4057,4360,6864,6141,2145,1699,3933,4171,1730,1607,881,823,1.16041e+06
+Pitt_0050005,6676,7355,6935,7592,4244,4196,7187,6711,2252,1705,4869,4971,1392,1617,786,1028,1.05046e+06
+Pitt_0050006,3163,3132,7599,7849,3825,4127,6558,6534,1931,1681,4394,4251,1494,1570,868,757,1.12345e+06
+Pitt_0050007,14963,7717,8491,9273,4731,4916,6837,6584,2288,1772,4706,4935,1970,1940,754,798,1.39421e+06
+Pitt_0050008,7199,8821,7591,8842,3482,3728,5135,4710,1976,1540,3968,3981,1715,1601,591,694,1.13523e+06
+Pitt_0050009,26923,40644,8814,9108,4273,4748,5723,5478,2078,1718,4575,4526,1863,1807,853,816,1.76086e+06
+Pitt_0050010,4490,3078,5682,6191,3067,2870,5479,5292,1740,1477,3459,3736,1229,1344,591,631,761078
+Pitt_0050011,28363,19189,7480,7519,4590,4795,7013,6665,1972,1473,4613,4545,1868,1908,792,763,1.40649e+06
+Pitt_0050012,7112,6084,7231,7252,4405,4418,6617,6365,2367,1737,4311,4415,1713,1671,701,648,1.09012e+06
+Pitt_0050013,3337,3904,6193,6784,4140,4335,6744,6730,2139,1761,4185,4131,1532,1706,852,820,994658
+Pitt_0050014,10865,8479,6843,7039,3636,3948,6425,6201,2016,1718,5168,5173,1612,1705,648,705,1.11765e+06
+Pitt_0050015,9120,8083,7528,7398,3888,3883,6686,6510,1949,1618,4994,5056,1810,1578,568,647,1.14003e+06
+Pitt_0050016,2754,2807,7752,8634,4277,4188,7332,6982,2120,1741,5155,5380,1925,1922,601,763,1.30454e+06
+Pitt_0050017,12165,8076,8485,9205,4293,4517,5340,5060,2129,2029,4476,2075,1569,1334,687,879,1.23097e+06
+Pitt_0050019,10633,9780,6887,8276,4003,4345,6896,6952,2346,1855,5309,5376,1812,2001,878,864,1.36197e+06
+Pitt_0050020,6929,6511,8849,8264,3884,3892,6659,6081,2549,2048,4297,4331,1839,1511,647,832,1.13216e+06
+Pitt_0050022,4824,4255,7490,7738,4976,5129,7387,7277,2241,1783,4763,4813,2061,1995,888,1019,1.17557e+06
+Pitt_0050023,4643,3926,7326,7388,4444,4485,6604,6404,2094,1751,4187,4797,1410,1627,889,793,1.13526e+06
+Pitt_0050024,12684,11099,7454,6980,4306,4633,6549,6485,1863,1712,4671,4508,1508,1778,859,827,1.15867e+06
+Pitt_0050025,4952,3665,7339,7162,3045,3045,5684,5378,1851,1638,4087,4059,1365,1445,523,533,947806
+Pitt_0050026,8792,10084,7540,8277,4608,4835,7672,6939,2200,1664,4563,4431,1657,1770,975,1023,1.25544e+06
+Pitt_0050027,2492,1726,7070,7352,3491,3753,6589,6337,2101,1648,3425,3589,1376,1360,630,657,842410
+Pitt_0050028,13370,15439,7385,7741,4694,4664,7125,7003,2296,1838,4359,4256,1995,2108,785,973,1.30131e+06
+Pitt_0050029,7248,9707,8036,8173,4805,4961,7069,6654,2008,1562,4452,4625,1708,1765,887,896,1.21288e+06
+Pitt_0050030,5794,4863,7549,8353,3672,3910,6286,6380,1963,1721,3982,4061,1703,1891,885,789,1.15753e+06
+Pitt_0050031,9351,6496,6916,7285,4185,4394,7452,7172,2000,1756,4235,4477,1418,1588,669,755,1.20858e+06
+Pitt_0050032,6415,4515,7794,8405,4415,4313,5967,5720,2077,1656,4475,4598,1396,1325,846,924,1.20639e+06
+Pitt_0050033,1756,1464,7873,7614,3397,3737,6760,6329,1839,1640,4445,4379,1187,1300,612,748,1.0599e+06
+Pitt_0050034,3038,2239,6479,6968,3915,3945,6792,6656,1958,1411,4074,4394,1344,1723,544,578,1.09495e+06
+Pitt_0050035,6792,7604,8567,9674,4321,4167,7423,6666,2387,1574,4485,4557,1882,1570,601,741,1.06631e+06
+Pitt_0050036,4254,2816,7555,8383,4599,4445,7430,7273,2428,1951,4288,4283,1531,1606,991,982,1.03148e+06
+Pitt_0050037,1843,2414,7548,7934,3733,3937,6940,6779,1750,1456,5246,5135,1840,2103,824,809,1.14398e+06
+Pitt_0050038,3414,2674,7257,7556,3632,3796,6336,5940,2264,1660,4207,4135,1369,1363,687,686,964342
+Pitt_0050039,7011,5698,6960,7503,3442,3518,6000,6018,1794,1319,3780,3897,1649,1610,739,760,1.03458e+06
+Pitt_0050040,6433,5770,7676,8390,3786,3910,6226,5727,1994,1542,4311,4270,1447,1459,539,623,1.08262e+06
+Pitt_0050041,9447,8422,7788,8705,4450,4845,7258,6887,2249,1860,4529,4487,1681,1980,792,917,1.20562e+06
+Pitt_0050042,2742,6497,7253,7098,3033,3831,5903,5665,1934,1464,4996,4861,1598,1747,732,687,1.03573e+06
+Pitt_0050043,1810,1950,7569,7709,3443,3772,6446,6547,1964,1615,4568,4709,1477,1730,832,776,1.02909e+06
+Pitt_0050044,4384,5281,7686,7144,4543,4828,6897,6599,2312,2094,4362,3952,1667,1839,889,851,1.1348e+06
+Pitt_0050045,8076,9561,9723,9387,5523,5640,7256,7027,2713,1953,4701,4918,1887,1950,914,1092,1.29415e+06
+Pitt_0050046,3340,2188,7706,7795,3665,3889,7195,6180,1995,1777,4350,4204,1290,1444,656,685,946842
+Pitt_0050047,6353,5929,8709,8739,4301,4183,7520,7079,2778,2093,5015,4939,2010,1711,971,895,1.18598e+06
+Pitt_0050048,2405,2301,7194,7920,3479,4024,5950,6034,1833,1727,4027,3918,1447,1496,863,817,1.0021e+06
+Pitt_0050049,2142,2426,6502,6670,3627,3845,5995,5814,2006,1653,3698,3843,1556,1452,772,687,895245
+Pitt_0050050,2011,2128,9106,9150,4219,4262,7864,7657,2139,1706,4825,5058,1668,1569,1131,920,1.22532e+06
+Pitt_0050051,2474,2558,9254,10166,4308,4764,7929,7554,2365,2084,4501,4881,1691,1596,1011,1050,1.23372e+06
+Pitt_0050052,11251,14840,6812,7186,3707,4146,6297,6228,1823,1666,4203,4487,1436,1521,737,813,819369
+Pitt_0050053,5169,3137,5804,5899,3481,3463,6150,5843,1878,1342,3633,3896,1243,1144,651,692,938407
+Pitt_0050054,4275,4855,7031,7314,4405,4634,6606,6272,1942,1563,4288,3990,1612,1627,883,845,1.07757e+06
+Pitt_0050055,3316,2674,6735,7378,3792,4141,5541,5420,2007,1717,3915,3939,1629,1426,725,712,972775
+Pitt_0050056,2041,1388,6624,6736,3191,3379,6081,5914,1725,1302,3642,3853,1629,1598,719,861,945127
+Pitt_0050057,4303,2300,7180,7610,3623,3793,5631,5454,1843,1464,3726,3694,1237,1368,640,716,913043
+Pitt_0050058,6214,4825,8003,8516,3118,3171,6512,7039,1941,1368,3455,4125,1648,1723,698,775,1.19767e+06
+Pitt_0050059,3765,3144,6646,7289,4004,4128,6180,6102,1862,1574,4815,4625,1808,1686,840,882,1.1104e+06
+Pitt_0050060,6019,6944,8188,8168,5047,4936,7144,6545,2175,1652,4171,3936,2455,1955,967,1107,1.25065e+06
+SBL_0051556,2106,1768,7720,7586,3840,3323,7092,6803,1810,1869,3885,3982,1900,2090,870,748,1.13767e+06
+SBL_0051557,5710,3483,8303,7092,5085,4945,5983,6013,1617,1694,4632,4794,1773,1753,967,741,1.15752e+06
+SBL_0051558,4042,4558,7488,7301,4674,4855,6334,6353,1934,2018,4608,4229,1857,2071,782,864,1.0282e+06
+SBL_0051559,3645,4445,8515,8368,4450,4495,6229,5693,1776,1806,4311,4202,1736,1553,912,845,1.2322e+06
+SBL_0051560,3049,2507,8098,7782,3718,3546,6783,6108,1632,1772,4248,4945,1693,1979,949,548,1.05788e+06
+SBL_0051561,16585,16399,8104,7849,3612,3664,6626,5934,1764,1705,3721,4018,1762,1741,569,579,1.35891e+06
+SBL_0051562,8720,4764,7035,7201,3559,3507,5772,5254,1803,1749,3963,2278,1728,1496,590,639,1.06808e+06
+SBL_0051563,7086,5181,7840,7422,3665,3465,6084,5251,1467,1613,4141,4490,1997,1736,707,666,1.206e+06
+SBL_0051564,3776,4723,8154,6976,3772,3915,6031,5820,1557,1657,3884,4193,1291,1635,591,571,1.12819e+06
+SBL_0051565,3802,4113,7110,7312,2975,2897,5202,5305,1516,1570,3579,3616,1478,1690,674,620,1.09358e+06
+SBL_0051566,3864,3763,8258,7852,3758,3837,5963,5415,2024,2238,4226,4102,1674,2177,841,929,1.06855e+06
+SBL_0051567,9145,9715,6997,7581,3983,3973,5960,5914,1811,1797,4570,4485,1801,2154,772,836,1.23764e+06
+SBL_0051568,6033,6732,7545,7260,4109,4336,6884,6821,1701,1413,4058,3899,1780,2266,703,827,1.10285e+06
+SBL_0051569,4603,5023,7605,7546,3954,4101,6885,6469,1801,1914,3779,4204,2022,1716,799,749,1.22238e+06
+SBL_0051570,9447,7270,6600,7039,3579,3625,5340,5083,1576,1395,3975,4373,1750,1751,862,683,1.1139e+06
+SBL_0051571,8395,11007,7783,7080,4607,4014,6413,5853,1614,1863,4441,3976,1594,1948,835,771,1.26023e+06
+SBL_0051572,7792,5891,6916,6709,3718,3927,6665,6288,1621,1661,4117,4244,1380,1910,973,894,1.16902e+06
+SBL_0051573,4941,6980,7104,6613,3739,3849,6883,6122,1923,1724,4806,4781,1758,1875,805,880,1.08511e+06
+SBL_0051574,3949,3834,8133,7782,3640,3687,5622,5688,1342,1488,3851,4151,1680,1606,714,756,1.03861e+06
+SBL_0051575,7015,5043,8490,9824,4279,4240,6600,6743,2346,2289,4472,4792,2313,2403,1256,978,1.17245e+06
+SBL_0051576,7073,3462,7124,7188,4147,3918,6208,5614,1714,1511,3970,4735,1739,1880,840,685,1.16444e+06
+SBL_0051577,7438,5153,8301,7672,4381,4341,6310,5851,1580,1676,3858,4440,1978,1955,1060,854,1.18788e+06
+SBL_0051578,11950,7126,8106,7643,3928,3876,6694,5676,1713,1566,4052,4400,1831,1893,846,695,1.2025e+06
+SBL_0051579,16822,15402,7182,7356,3840,3869,5971,5527,1546,1611,3926,4319,2037,2049,761,629,1.30634e+06
+SBL_0051580,8505,15840,7734,7213,3267,3395,5650,5260,1594,1522,3800,3736,1417,1347,863,736,1.255e+06
+SBL_0051581,18548,15743,7349,6270,3642,3424,4705,4804,1260,1308,3328,3519,1416,1126,606,619,1.24003e+06
+SBL_0051582,6639,6931,9089,8086,3653,3993,5648,5269,1570,1610,4157,4684,1644,1880,798,421,1.27172e+06
+SBL_0051583,14488,12760,7001,7799,5091,5463,7530,7064,2044,1929,4116,4433,1543,2192,890,903,1.29172e+06
+SBL_0051584,13228,11623,7740,7202,4597,4503,6494,6170,1811,1832,4422,4327,1690,2189,762,746,1.29288e+06
+SBL_0051585,10999,9979,7009,7343,3833,3763,6392,5938,1497,1599,3939,4117,1820,1846,1033,941,1.0977e+06
+SDSU_0050182,6854,4690,8453,7050,4164,4320,7521,7301,2088,1744,3672,4352,1411,1854,579,685,1.21971e+06
+SDSU_0050183,4967,5927,7532,6953,4115,4378,6466,6487,1762,1650,4395,4328,1774,1649,796,850,1.50734e+06
+SDSU_0050184,2404,3266,9269,8360,3755,4166,6778,6384,2034,1892,5214,4364,1872,2489,920,1002,1.2793e+06
+SDSU_0050185,3284,3757,7019,6951,4521,4389,6405,6103,1883,1676,5274,4673,1597,2154,516,954,1.52184e+06
+SDSU_0050186,2930,1892,7452,7601,4388,4165,7511,7172,1728,1721,4538,4496,1538,1581,779,934,1.26906e+06
+SDSU_0050187,11971,11074,8522,7924,4397,4487,7225,7116,2187,2493,4260,4391,1724,1823,587,721,1.55511e+06
+SDSU_0050188,5399,3202,8224,7798,4053,3947,6608,6585,2011,1815,3993,4283,1774,2241,804,796,1.61885e+06
+SDSU_0050189,7414,6777,7065,6813,4304,4648,7482,6480,2005,1772,4831,4739,1970,1735,811,628,1.43743e+06
+SDSU_0050190,2328,1993,7007,6758,4033,3758,6835,5311,1728,1224,3958,4183,1374,1622,924,682,1.39333e+06
+SDSU_0050191,5850,4357,7869,7211,4647,4349,7361,7093,1955,1814,4257,4179,1786,2111,988,1059,1.50683e+06
+SDSU_0050192,9810,6605,6438,5913,3692,3684,6448,5975,1607,1533,3321,2903,1262,1208,620,723,1.14884e+06
+SDSU_0050193,2366,2830,6716,6217,4674,4982,6811,6466,1934,1748,4024,4255,1504,1775,978,987,1.42682e+06
+SDSU_0050194,8174,5156,7829,6775,4926,4809,5864,6274,1877,1745,3847,3898,1341,1636,907,855,1.2611e+06
+SDSU_0050195,3596,3997,6792,6912,3033,3156,6572,6483,1556,1491,3657,3785,1555,1740,732,786,1.28283e+06
+SDSU_0050196,5959,4083,6386,5906,3868,3780,7002,6582,2028,1698,3775,4178,1636,1914,753,819,1.25114e+06
+SDSU_0050197,5334,4454,9156,7079,4824,3231,8370,2822,3012,1594,4144,3047,1664,1334,960,348,12159.8
+SDSU_0050198,5465,6872,8004,7815,4483,4330,6675,6276,1990,2153,4227,4250,1618,1616,886,652,1.43119e+06
+SDSU_0050199,2795,3199,7966,5897,4206,4065,6279,5547,1912,1536,3995,4095,1658,1719,793,904,1.37704e+06
+SDSU_0050200,5063,4323,7128,7223,4420,4471,7602,6785,1888,1787,4032,3760,1655,1403,1003,961,1.17754e+06
+SDSU_0050201,9351,5331,7083,6827,4082,4273,6596,6337,1704,1568,3506,3503,1333,1806,648,649,1.65087e+06
+SDSU_0050202,2016,1969,6610,7322,4340,4484,6932,6661,2016,2118,3483,3536,1775,1459,708,823,1.16099e+06
+SDSU_0050203,2360,2309,7809,7370,4345,4489,6903,6325,1945,1742,3743,4235,2009,1669,760,829,1.58357e+06
+SDSU_0050204,4055,5292,7655,6335,3614,3790,5937,6309,1193,1611,3588,3658,1416,1736,651,772,1.07665e+06
+SDSU_0050205,4419,5434,6498,6582,4978,5099,6730,6221,1893,1545,4184,4065,1907,1563,994,943,1.08761e+06
+SDSU_0050206,2409,2461,6465,5994,4406,4209,8269,8081,2110,1768,3854,4031,1786,2085,938,1061,1.2393e+06
+SDSU_0050207,9277,5916,8543,8040,5186,5672,7308,6647,1840,2055,4277,4285,1296,1398,1201,1082,1.51983e+06
+SDSU_0050208,3991,2524,7034,6999,4431,4461,7402,7079,1942,1793,4038,3936,1753,1863,892,869,1.30269e+06
+SDSU_0050209,2920,1500,7416,7340,4271,4029,7706,7239,1886,1650,3761,3934,1879,1834,808,830,1.344e+06
+SDSU_0050210,4688,3149,6440,6102,5016,4525,5528,6010,1903,1722,4049,4425,1681,2193,797,836,1.22032e+06
+SDSU_0050211,2736,1900,8089,8825,3865,4291,6855,6671,1897,2086,3266,4298,1591,1722,843,732,1.46667e+06
+SDSU_0050212,4283,3597,8314,8594,3356,3461,6731,7180,2086,2296,4010,4149,1794,1916,640,712,1.38618e+06
+SDSU_0050213,2652,2143,6948,6746,3924,4155,6480,5801,1699,1457,4292,4223,1677,1783,812,958,1.29143e+06
+SDSU_0050214,4287,3221,6791,6465,3764,3867,5424,5378,1596,1454,3863,4346,1486,1851,845,878,1.34947e+06
+SDSU_0050215,7002,5031,6245,6703,4235,4251,5881,5167,1787,1775,3589,3836,1250,1401,633,702,1.4491e+06
+SDSU_0050216,2200,2123,7169,7011,4454,4515,6668,6464,1952,1518,4532,4266,1335,1336,998,779,1.23807e+06
+SDSU_0050217,3787,3309,6677,6671,3604,3889,6431,6439,1815,1660,4130,3706,1541,1770,828,662,1.44863e+06
+Stanford_0051160,3100,2732,6685,6882,3829,3733,6554,6254,1739,1693,2716,2252,1196,638,639,740,777940
+Stanford_0051161,7801,7895,6408,7117,4379,4544,7917,7565,2046,2002,3152,3435,2137,1652,1140,1286,1.11757e+06
+Stanford_0051162,1537,1459,6351,6471,2270,2798,6661,5841,1630,1539,3416,3542,1166,1028,607,824,1.07807e+06
+Stanford_0051163,10545,5032,7736,7917,5475,5067,8345,8080,2250,2095,4152,4214,2105,2098,862,1221,1.26928e+06
+Stanford_0051164,7651,3100,5869,6072,3639,3366,6450,5951,1425,1350,3694,4302,1686,2099,780,753,991670
+Stanford_0051165,4545,5225,6596,6430,3844,4053,6376,3084,1569,1702,3028,2377,948,681,962,780,894601
+Stanford_0051166,7062,3180,6905,6553,4324,3340,4927,7081,1247,1773,1530,3523,275,1020,492,657,930552
+Stanford_0051167,2229,3328,6223,6722,3996,3962,7560,7365,1399,1687,4602,3832,1521,2498,878,827,1.19332e+06
+Stanford_0051168,2202,2863,7316,7927,4044,4448,8192,7481,2269,1988,4008,4359,1908,1967,947,891,1.30035e+06
+Stanford_0051169,4272,4441,6164,6490,3597,3813,6752,6405,1482,1352,3793,3723,1355,1188,930,889,1.03691e+06
+Stanford_0051170,5662,4804,6183,6516,3289,3216,4958,4001,1468,1198,1955,1766,319,430,600,602,732991
+Stanford_0051171,4003,4323,7321,7526,3994,4292,6948,6843,1885,1755,4348,4476,1535,1865,856,1122,1.38889e+06
+Stanford_0051172,7664,15211,7602,6767,5436,5449,8327,8263,1978,2152,4469,5002,1623,2244,912,943,1.48662e+06
+Stanford_0051173,5506,6157,6800,7135,4218,4217,7358,4247,2038,1509,3527,1950,1245,283,987,901,880249
+Stanford_0051174,7110,6703,7488,7672,3735,2802,6747,2835,2066,1236,3753,2522,1141,1023,679,566,1.043e+06
+Stanford_0051175,5100,4468,6723,6845,1605,1451,3027,2139,1331,1041,1876,1676,320,127,142,159,831882
+Stanford_0051176,7547,17118,6621,4335,1105,1155,3763,2842,1660,1406,4427,2051,1247,660,157,145,1.2826e+06
+Stanford_0051177,2237,1671,6100,6999,4104,3675,7488,8148,2282,1479,4557,5045,1651,1823,804,913,793507
+Stanford_0051178,9558,9202,7438,6888,4062,4492,4706,6839,2022,1676,2653,3806,1437,1616,632,1109,1.12953e+06
+Stanford_0051179,2424,3885,7966,6195,3928,3932,6512,5673,1441,1508,3546,2783,1222,1645,545,823,1.24531e+06
+Stanford_0051180,13241,13476,6807,6625,4444,4506,6575,5719,1829,1675,3153,3290,1125,1351,968,874,1.1137e+06
+Stanford_0051181,2210,4299,6126,6841,3596,4574,7966,5120,1709,1598,4264,3771,1646,1355,1044,1038,852689
+Stanford_0051182,2277,2542,6071,6276,3393,3497,6840,5253,1464,1358,2621,2221,777,729,896,753,728987
+Stanford_0051183,2006,2319,6920,6972,3890,4041,7222,6022,2082,1866,3702,3757,1149,1268,1039,921,797985
+Stanford_0051184,1593,1570,6477,6611,3076,2940,5692,4989,1674,1435,3721,3277,1033,1509,836,898,798335
+Stanford_0051185,2902,2369,7473,7089,3932,3952,7701,6752,1939,1719,4207,3168,1547,1452,1094,989,714885
+Stanford_0051186,2374,2846,6770,7351,3673,3016,5696,2394,1650,1236,2426,1830,869,283,626,436,668513
+Stanford_0051187,1697,1645,6675,7278,2806,2653,6737,6006,1849,1300,3541,3542,1840,1347,554,519,839486
+Stanford_0051188,1584,3148,6509,7219,3210,4048,6605,6051,1756,1867,4017,3277,1051,1452,923,1007,727592
+Stanford_0051189,2398,2762,7176,7034,4513,4163,6938,6654,1941,1551,4054,4229,1658,1749,935,1071,1.17373e+06
+Stanford_0051190,2246,3282,5915,6709,3431,2511,6943,6782,2096,1862,3783,4091,1685,2036,693,1126,976221
+Stanford_0051191,2139,2358,6414,6652,2838,2974,6640,6468,1546,1439,3170,3414,1255,1294,747,901,962297
+Stanford_0051192,2475,2482,6556,6747,3571,3757,7235,6459,1257,1429,4167,4183,1568,1766,774,869,1.14667e+06
+Stanford_0051193,4257,4418,6341,6577,4002,3542,5964,5644,1828,1690,3904,3908,1370,1473,835,799,1.1949e+06
+Stanford_0051194,10903,10149,7083,7234,4274,4470,8606,7097,1811,1811,4180,4496,1868,1893,810,955,1.50064e+06
+Stanford_0051195,1585,1101,6666,6689,3712,1930,4729,2214,1542,1252,1755,2405,413,539,940,250,793915
+Stanford_0051196,1424,1559,6784,6878,2251,2084,4068,2434,1617,1179,3143,2593,1061,1048,184,494,912530
+Stanford_0051197,4917,2743,5234,5781,3200,2943,6812,5061,1467,1335,2788,3005,1284,1416,1149,1022,951451
+Stanford_0051198,3308,2391,6534,6262,3847,4089,7804,7880,1490,1672,3768,3784,1772,2422,773,859,1.18226e+06
+Stanford_0051199,6564,3728,7733,6915,4714,4697,8215,7917,1464,1791,3265,4004,1415,1723,836,912,1.02157e+06
+Trinity_0050232,6669,6457,9063,8340,4048,4180,7152,6574,2080,1938,5040,5162,1909,2021,695,980,1.42201e+06
+Trinity_0050233,10843,5884,8301,7977,4485,4450,7634,7311,1713,1674,5013,5484,2069,1987,827,829,1.33568e+06
+Trinity_0050234,8209,3188,10104,9467,5162,4446,7119,6617,2192,2129,5122,5633,2189,2317,869,915,1.36342e+06
+Trinity_0050235,3974,2414,8334,8426,4232,4115,6619,6732,1850,1981,4102,4134,2117,2137,616,836,1.09632e+06
+Trinity_0050236,2249,2084,8149,7341,3722,3927,6700,6220,1765,1700,3835,3819,1390,1680,744,803,1.00638e+06
+Trinity_0050237,6145,15924,8630,8737,4107,4152,6956,6545,2150,2025,4228,4019,2024,2154,846,889,1.29345e+06
+Trinity_0050238,5451,4593,6867,7145,3932,4001,5810,5502,1705,1547,4731,4639,1912,1796,774,774,1.10375e+06
+Trinity_0050239,12156,11784,8433,7824,4243,4290,6701,6424,1836,1820,4604,4764,2262,2613,877,873,1.41572e+06
+Trinity_0050240,3190,2680,7520,7385,3545,3661,7569,7218,1957,1887,4380,4461,1865,2035,812,813,1.12182e+06
+Trinity_0050241,6605,5342,8225,8098,4089,4363,6158,5501,1724,1967,4364,4286,1889,1792,912,686,1.21712e+06
+Trinity_0050242,3344,3047,9229,8596,4127,3880,7763,7189,2089,2259,4339,4342,1862,2079,833,887,1.19057e+06
+Trinity_0050243,18533,12610,8291,7874,4623,4738,7015,6693,2151,2015,4337,4689,2009,2304,818,810,1.39538e+06
+Trinity_0050244,6112,8215,10759,10626,5945,5656,8329,7524,2271,2151,5571,5339,2996,2947,1062,1286,1.39061e+06
+Trinity_0050245,9462,5463,6701,6425,3692,3652,6069,5781,1763,1382,3745,4044,1817,1967,509,689,1.05736e+06
+Trinity_0050246,5964,9912,9782,8860,4960,5557,7120,6489,2260,1686,5367,5035,2344,1944,969,847,1.22796e+06
+Trinity_0050247,3014,2871,6513,6226,4106,3893,6921,6443,1884,1732,4080,4290,1907,2003,1013,1016,1.10407e+06
+Trinity_0050248,5128,3054,7038,7024,4686,4654,7233,6903,1934,1656,4573,4470,2190,2382,1274,1202,1.11521e+06
+Trinity_0050249,6682,5469,8099,7982,5200,5076,7200,6636,2261,2227,4937,4839,1840,2027,725,748,1.25586e+06
+Trinity_0050250,2296,2179,7746,7481,3700,3874,7244,7305,1926,1818,3813,4073,1973,1928,801,896,1.13492e+06
+Trinity_0050251,7568,5066,9181,8686,4745,4860,7380,7476,2247,2210,4519,4884,2093,1934,805,982,1.28256e+06
+Trinity_0050252,3863,4717,7611,7410,4015,4000,7060,7026,2124,2001,4714,4725,2371,2357,844,936,1.17614e+06
+Trinity_0050253,2182,2330,7794,8465,4012,4088,7097,7290,1917,1770,4067,4544,2242,2147,942,1053,1.19598e+06
+Trinity_0050254,5552,5463,7354,7226,4502,4634,6701,6468,1943,1780,4061,3930,1657,1514,843,1057,1.07091e+06
+Trinity_0050255,4475,4691,8834,8795,4899,4530,7116,6539,2399,2160,5059,4928,2045,2137,981,986,1.23384e+06
+Trinity_0050257,2887,2369,8244,8226,4672,4643,7535,7168,1665,1545,4622,5117,2241,2645,1237,1050,1.15894e+06
+Trinity_0050259,5226,5807,7533,7418,4356,4246,6505,6069,2021,1627,4493,4418,1648,1693,655,700,1.21632e+06
+Trinity_0050260,2256,3307,8267,8050,3928,4153,6303,6008,1799,1692,4969,4961,2222,2502,866,885,1.14709e+06
+Trinity_0050261,3561,4370,9386,8500,4456,4238,7061,6787,1862,1825,4629,4586,2261,2081,804,861,1.20537e+06
+Trinity_0050262,13190,12082,8117,7838,4147,4304,7037,7242,2281,2238,4149,4123,1775,2104,866,987,1.30275e+06
+Trinity_0050263,11550,12938,8474,8707,4309,4501,7570,7615,2111,1965,5722,5453,2119,2397,939,1109,1.40843e+06
+Trinity_0050264,8864,10001,8767,8568,4185,4422,7124,6632,1976,1655,4022,3617,1754,2166,885,850,1.30229e+06
+Trinity_0050265,1426,1367,8184,7641,3990,3595,6180,5792,1960,1691,4073,4365,1360,1486,795,768,1.02121e+06
+Trinity_0050266,6320,5852,7238,6897,4094,4071,7906,7548,1987,1713,4061,4063,1554,1518,770,779,1.10043e+06
+Trinity_0050267,3276,4255,9755,8837,4309,4400,6265,5957,1979,1617,4880,4992,2136,2204,813,872,1.26912e+06
+Trinity_0050268,4669,3689,7488,7580,4395,4318,6294,6397,1802,1935,4604,4392,2061,1983,938,912,1.17191e+06
+Trinity_0050269,7185,4120,8252,8071,4186,4006,6033,6061,2041,1841,4275,4741,1755,2030,723,860,1.0955e+06
+Trinity_0050270,3811,4213,8227,8254,4007,4187,7396,7014,2105,2055,4858,4719,1979,1804,919,832,1.19843e+06
+Trinity_0050271,4845,3188,8943,8454,5239,4918,7562,6790,2129,1858,4374,4839,1889,1796,1003,943,1.15293e+06
+Trinity_0051132,6498,7078,8526,8008,4912,5002,6928,6715,1960,1975,4760,4734,2240,2192,904,930,1.32882e+06
+Trinity_0051133,4050,2382,8687,8489,4978,4054,7746,7345,2418,2263,5344,5601,2500,2692,1031,1168,1.36101e+06
+Trinity_0051134,3850,3583,7863,7332,3845,3885,6290,6007,1780,1532,3807,3893,1652,1506,720,712,1.05093e+06
+Trinity_0051135,4910,6837,7778,7407,3700,3911,6726,6141,1893,1648,4454,4546,2075,2257,876,941,1.21886e+06
+Trinity_0051136,8190,5489,9857,8668,5385,5474,7060,7037,2381,2237,4846,4688,1821,1823,600,845,1.25778e+06
+Trinity_0051137,8719,10039,8259,8296,5437,5199,6616,6525,2138,2063,4777,5313,2403,2324,865,964,1.38067e+06
+Trinity_0051138,2577,1802,8872,8400,3872,3741,7979,7477,2083,2046,4023,4229,1888,1891,806,938,1.18683e+06
+Trinity_0051139,3567,3093,7757,7175,4155,4077,7473,7358,2039,1985,4234,4307,1809,1879,833,781,1.06896e+06
+Trinity_0051140,3040,2224,8766,8098,4793,4206,8201,7595,2326,2200,4596,4550,1681,1801,1154,911,1.21328e+06
+Trinity_0051141,5385,4464,9069,9075,3817,3854,6648,6824,1990,1975,4380,4624,1724,2112,883,1139,1.22837e+06
+Trinity_0051142,8723,11778,8000,7884,4825,4860,6495,6130,1989,1803,4183,4574,2029,2027,685,677,1.30923e+06
+UCLA_1_0051201,3004,3147,7282,6745,3950,4276,7802,7162,2231,1870,4618,4556,1827,2031,1053,960,1.53709e+06
+UCLA_1_0051202,4908,3360,7106,7409,4217,3999,7269,6674,1809,1588,4185,4105,2138,1907,1078,890,1.49158e+06
+UCLA_1_0051203,2959,2743,7469,7690,3957,4089,7631,7622,2334,1813,3870,3881,1610,1671,804,771,1.20856e+06
+UCLA_1_0051204,2855,2087,6930,6942,3886,3887,6389,6064,1552,1299,4085,3947,1428,1666,863,795,1.01428e+06
+UCLA_1_0051205,10607,10014,6436,6711,4629,4769,7489,6977,2218,1724,4134,4345,2266,2054,1057,945,1.442e+06
+UCLA_1_0051206,4702,2619,8042,8378,4359,4250,7953,7673,2080,1762,5104,5020,2576,2389,1407,1355,1.74189e+06
+UCLA_1_0051207,2639,2759,6484,6655,4005,4115,8347,7732,1966,1551,3552,4022,1816,2140,988,1025,1.16382e+06
+UCLA_1_0051208,3149,4278,5705,5719,3141,3377,7084,6186,1827,1382,3978,3787,1686,1548,662,869,1.27013e+06
+UCLA_1_0051209,6173,6961,7095,7113,4136,4300,7594,6761,2093,1970,4254,4060,1484,1552,904,1123,1.42111e+06
+UCLA_1_0051210,3512,3985,6935,7089,3742,3906,6450,6000,1937,1485,3990,3742,1707,1634,889,966,1.49995e+06
+UCLA_1_0051211,3647,3048,7636,7788,4222,4259,7019,6890,2183,1843,3707,3899,1762,1482,1051,1127,1.21617e+06
+UCLA_1_0051212,6212,4501,7478,7383,4617,4733,8074,8041,2279,1918,4338,4528,2361,2170,757,833,1.57767e+06
+UCLA_1_0051213,4291,4290,6604,6623,2640,3339,5686,5427,1498,1485,3963,4025,1023,1414,1085,1177,906002
+UCLA_1_0051214,3519,4376,7226,7300,3756,3930,7519,6857,2074,1927,4679,4272,1879,1552,1065,843,1.26778e+06
+UCLA_1_0051215,3945,3090,6729,6751,4601,4747,8419,7307,2064,1501,4675,4656,2005,2088,1079,1187,1.55547e+06
+UCLA_1_0051216,9124,6188,6612,6648,4118,4275,6996,6879,1907,1638,3639,3677,1693,1842,920,937,1.41715e+06
+UCLA_1_0051217,8201,8820,7368,7239,4080,4277,6486,6416,1801,1603,3809,3767,2006,1782,914,744,1.44046e+06
+UCLA_1_0051218,6412,5963,6731,6962,3710,3950,6732,5870,2084,1631,3961,3814,2023,1835,955,781,1.43216e+06
+UCLA_1_0051219,4721,2719,6872,7212,4171,4300,6821,6120,1697,1392,4042,3842,1556,1642,1132,928,1.49857e+06
+UCLA_1_0051220,2622,2688,6750,7053,2303,2664,5155,5104,1525,1345,4739,4606,1978,2143,913,929,1.17016e+06
+UCLA_1_0051221,4483,6110,7836,8109,4648,4780,6494,6550,2104,1738,4359,4408,2343,1980,899,822,1.57758e+06
+UCLA_1_0051222,5485,4068,7137,7412,4793,5052,8761,7797,2394,1963,4520,4528,1527,1682,1151,1085,1.37518e+06
+UCLA_1_0051223,3334,3109,6957,6415,3942,4073,7058,6284,1805,1349,3572,3594,1688,1693,980,1205,1.22408e+06
+UCLA_1_0051224,4565,4517,7436,7537,5418,5316,6977,6372,1954,1583,4495,4554,2187,2223,978,1171,1.56755e+06
+UCLA_1_0051225,5436,3570,6344,6431,4501,4541,6953,6274,1954,1575,4463,4693,2060,2014,1069,878,1.32131e+06
+UCLA_1_0051226,2580,2928,6355,6342,3865,3987,7826,7372,2125,1940,3511,3693,1571,1331,1149,967,1.29235e+06
+UCLA_1_0051227,13051,6443,8139,7975,4782,4894,7342,6507,2140,1977,4609,4401,2083,1720,1084,997,1.64076e+06
+UCLA_1_0051228,2005,1937,6820,7146,3744,3865,6701,6221,1815,1676,4129,4071,1480,1344,885,975,1.36227e+06
+UCLA_1_0051229,14833,12142,6441,7671,3698,3603,6328,6689,1756,1506,4019,4516,1908,1987,818,797,1.52296e+06
+UCLA_1_0051230,4617,4069,6152,6097,3485,3696,6264,5927,1807,1407,3477,3563,1448,1606,838,801,1.42145e+06
+UCLA_1_0051231,2907,1645,7174,7202,3095,2875,7700,7089,2057,1686,4557,4274,2019,2013,914,882,1.33736e+06
+UCLA_1_0051234,5284,3068,6019,6075,4042,3161,7419,7147,1896,1634,3772,3860,1751,1999,990,1035,1.21326e+06
+UCLA_1_0051235,5259,4475,7840,8009,5238,5100,8593,7918,2328,1947,4291,4478,2028,2187,1062,1310,1.49428e+06
+UCLA_1_0051236,6036,6031,6501,6338,4078,4514,6482,6108,1672,1449,4161,3990,2121,1644,1222,1000,1.35681e+06
+UCLA_1_0051237,2460,2576,7222,7596,3777,3962,7922,7307,2078,1672,4445,4431,2158,2403,1097,1076,1.51706e+06
+UCLA_1_0051238,16939,7340,8628,9009,4182,3975,6917,6457,2072,1607,3520,3437,1435,1716,913,875,1.63982e+06
+UCLA_1_0051239,6475,5915,7560,7762,4202,4626,8452,7710,2503,2104,4031,4043,1984,1969,1107,990,1.48552e+06
+UCLA_1_0051240,4049,5885,6269,6729,4208,4469,7030,6763,1804,1610,4228,4178,1998,2125,1077,1036,1.52777e+06
+UCLA_1_0051241,1783,1580,7424,7458,3369,3830,7423,6632,1838,1462,3717,3593,1916,1843,1053,861,1.30998e+06
+UCLA_1_0051248,4120,3349,6647,6568,3589,3834,7025,6333,1891,1438,3705,4106,1638,1871,962,774,1.27234e+06
+UCLA_1_0051249,10308,5450,7952,7884,5598,5752,7134,7067,2063,1979,4254,4646,1828,1827,1248,1196,1.5496e+06
+UCLA_1_0051250,3535,2783,8320,7875,4061,4345,8885,8085,2158,1782,4800,4524,2114,1761,995,1122,1.59641e+06
+UCLA_1_0051251,4481,4590,5987,6071,3613,3863,5968,5594,1958,1712,3619,3417,1158,1043,801,636,1.22902e+06
+UCLA_1_0051252,3201,2960,7144,7197,4286,4275,6741,6473,2040,1625,4359,4644,1649,1710,930,1011,1.58224e+06
+UCLA_1_0051253,9530,4807,7357,7132,4885,4807,7429,6818,2195,1686,4544,4529,1852,1946,995,1023,1.55321e+06
+UCLA_1_0051254,12109,6208,7949,8086,4326,4406,7782,7645,2050,1793,4248,4390,1803,1754,941,902,1.5819e+06
+UCLA_1_0051255,2021,2947,6732,6905,3261,3674,6783,6580,1908,1606,4267,4250,1688,1437,724,748,1.39957e+06
+UCLA_1_0051256,7068,7454,7013,6989,4166,4326,7520,7543,2217,1849,4074,4114,1574,1880,795,881,1.56195e+06
+UCLA_1_0051257,5922,5232,7030,7141,4150,4428,6422,5618,1887,1615,3357,3034,1418,1379,766,588,1.19835e+06
+UCLA_1_0051258,3713,3697,7461,7567,4548,4737,6952,6518,2133,2079,4100,4019,1591,1632,1030,1138,1.39432e+06
+UCLA_1_0051259,4608,4155,6788,6908,3849,3968,7482,6831,2047,1693,3771,4131,1697,1357,784,753,1.19885e+06
+UCLA_1_0051260,2672,2085,6886,6955,3856,3951,7232,6950,1886,1635,4246,4176,1899,1994,1101,897,1.23036e+06
+UCLA_1_0051261,6608,4299,6304,6704,4824,4978,7074,6975,2030,1812,4127,4460,1888,2025,929,952,1.48647e+06
+UCLA_1_0051262,8125,6933,7294,7159,4264,4297,7294,6637,2011,1700,3956,4055,1537,1572,970,901,1.24758e+06
+UCLA_1_0051263,4503,2369,6728,7052,3738,3728,6019,5727,1799,1594,5042,4840,1750,2218,748,821,1.39949e+06
+UCLA_1_0051264,2904,2245,6275,6512,3394,3563,5814,5528,1677,1417,3529,3502,1465,1283,967,744,1.18478e+06
+UCLA_1_0051265,9584,4980,7669,7776,3920,4326,6677,6759,1944,1608,4067,4369,1889,2096,887,1054,1.59897e+06
+UCLA_1_0051266,4740,6177,7242,6938,3616,3835,7145,6636,1887,1626,2750,4675,1673,2234,1036,969,1.34092e+06
+UCLA_1_0051267,5205,5499,7184,7195,4473,4626,7827,7078,2040,1760,3866,3971,1590,1391,919,879,1.46702e+06
+UCLA_1_0051268,4250,5184,6602,6958,4348,4678,7631,7330,2051,1842,4161,4441,2206,2292,937,897,1.40057e+06
+UCLA_1_0051269,3173,2532,8170,7821,4182,4300,6681,6441,2045,1549,4062,4464,1741,1953,982,989,1.65819e+06
+UCLA_1_0051271,2974,1857,7868,8327,4389,4508,7583,6909,2132,1760,4221,4396,1818,1755,1078,1102,1.4896e+06
+UCLA_1_0051272,3217,3014,6657,6419,3821,4062,5916,5362,2019,1523,3690,3372,1553,1438,956,886,1.21917e+06
+UCLA_1_0051273,7946,6284,6784,6646,4993,5025,7175,6733,1891,1542,4213,4261,2081,2062,1096,1025,1.49293e+06
+UCLA_1_0051274,1994,1805,7548,7970,3636,3715,7593,7062,2356,1732,3965,4306,1901,1830,926,1000,1.26298e+06
+UCLA_1_0051275,2411,2685,6068,6474,3011,3574,6602,6193,1666,1327,3764,3611,1864,1734,814,841,1.37293e+06
+UCLA_1_0051276,3155,3026,7183,7500,4674,4956,8412,7497,1952,1690,4400,4467,1891,1881,1188,1174,1.64628e+06
+UCLA_1_0051277,10639,8210,6602,6594,3947,4209,6962,6799,1782,1598,4195,4342,1755,1839,880,853,1.48766e+06
+UCLA_1_0051278,2495,2832,7397,7500,3628,3514,7323,6849,2036,1878,4452,4149,1824,1919,827,736,1.46167e+06
+UCLA_1_0051279,3810,2075,7842,7774,4100,4157,6983,6593,2012,1924,4013,3968,1614,1453,991,795,1.44497e+06
+UCLA_1_0051280,6463,9341,7013,7342,4832,5119,7021,6539,1857,1762,3951,3786,1827,1906,966,823,1.37443e+06
+UCLA_1_0051281,1873,3459,6836,6681,3473,3876,7055,6590,1742,1420,4031,3636,1843,1710,1021,986,1.44477e+06
+UCLA_1_0051282,6714,4803,5790,5996,3148,3450,6346,5994,1464,1437,3864,3669,1471,1419,894,882,1.21328e+06
+UCLA_2_0051291,6743,6581,8545,7944,4435,4807,7477,7311,2064,2215,4216,3885,1684,1660,897,819,1.67998e+06
+UCLA_2_0051292,4059,3526,7034,6768,3258,3844,6141,6212,1993,1485,4777,4443,1981,1672,770,804,1.36404e+06
+UCLA_2_0051293,7287,5990,6410,6442,4077,4142,6808,5170,1685,1275,3560,2764,1758,1520,816,653,1.15777e+06
+UCLA_2_0051294,3515,4146,7536,7633,3705,4042,7431,6876,2111,1559,4601,4551,1602,1741,1067,995,1.41023e+06
+UCLA_2_0051295,11610,4751,8089,8121,4512,4494,8295,7540,2125,1942,3938,4238,1998,2082,1066,867,1.48645e+06
+UCLA_2_0051296,5053,6250,6919,7200,3750,3502,5395,5169,1288,1811,2486,2970,830,1119,1749,712,1.43011e+06
+UCLA_2_0051297,3774,2841,7437,7883,3671,3767,6208,5410,1758,1828,4472,4399,1676,1256,803,634,1.42589e+06
+UCLA_2_0051298,5043,4166,7930,7409,3997,4198,8037,7432,2117,1926,4188,4445,1861,1713,1118,1101,1.34463e+06
+UCLA_2_0051299,3389,2757,6709,6610,4047,3901,7390,7149,2006,1631,4225,4230,2070,2076,823,988,1.4324e+06
+UCLA_2_0051300,7853,2473,7059,7444,4232,4047,6754,6542,2218,1626,4122,4553,1855,1846,919,1056,1.52849e+06
+UCLA_2_0051301,9403,5549,7319,7435,4593,4494,7712,6986,2032,1794,4522,4207,1854,2029,975,1031,1.55818e+06
+UCLA_2_0051302,7358,6670,7170,7293,3807,3924,6850,6356,1932,1796,4295,4258,1914,1658,1044,1052,1.5838e+06
+UCLA_2_0051303,6009,5506,6525,6910,3728,3875,6597,6271,1765,1475,4071,4070,1583,1613,888,916,1.47581e+06
+UCLA_2_0051304,3610,3398,8687,8746,5225,5405,8719,8233,2396,2523,4580,2928,1806,1594,1245,990,1.49508e+06
+UCLA_2_0051305,4876,4118,6463,7131,3500,3587,5856,5750,1758,1560,3734,3812,1417,1397,698,828,994370
+UCLA_2_0051306,2242,2877,7068,7513,3341,3620,7023,7180,1909,1859,4560,4936,2017,2106,944,983,1.5282e+06
+UCLA_2_0051307,5506,5007,6537,6798,4055,4155,6836,6303,1724,1531,4021,4137,1792,1597,687,789,1.22255e+06
+UCLA_2_0051308,3697,1985,7705,8178,4411,4982,8096,7787,2214,2072,4398,4981,2196,2245,1647,1260,1.69164e+06
+UCLA_2_0051309,2682,2479,6960,6553,3172,3139,7116,6879,1949,1609,4196,4030,1677,1732,785,957,1.19806e+06
+UCLA_2_0051311,7591,5921,6910,7196,3760,3732,7399,6836,1928,1522,3573,3800,1764,1448,788,710,1.24721e+06
+UCLA_2_0051312,9430,9149,6755,7327,4537,4632,6950,6851,2197,1479,4050,2897,1485,1494,890,888,1.44805e+06
+UCLA_2_0051313,7999,5694,7087,7237,3919,4030,7773,7282,1918,1686,3606,3901,1950,1896,951,975,1.5149e+06
+UCLA_2_0051314,6526,6771,6819,6027,3859,3832,7134,6618,2048,1689,4581,3972,1253,1291,1027,789,1.35868e+06
+UCLA_2_0051315,2724,2241,7969,7651,4471,4683,7849,7170,1961,1719,4411,4246,1988,2475,858,896,1.37824e+06
+UCLA_2_0051316,4800,2214,6703,6994,3935,3807,8323,7722,2154,1966,4216,3692,1433,1398,803,743,1.36926e+06
+UCLA_2_0051317,6498,7938,7179,7200,3371,3861,7448,7072,1978,1833,5044,4691,2333,2069,1217,788,1.59849e+06
+UCLA_51232,22732,13373,10308,5106,11820,1622,11006,3773,3485,748,2551,2419,668,1641,2218,345,1.04528e+06
+UCLA_51233,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+UCLA_51242,9116,21299,3800,4144,1748,1392,2961,4258,1459,3525,3782,1990,1314,415,5,90,825703
+UCLA_51243,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+UCLA_51244,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+UCLA_51245,7034,5199,6387,3226,1359,1146,1235,1604,131,410,717,826,256,381,10,419,895567
+UCLA_51246,3472,11567,3954,2621,2247,1844,2197,1939,452,48,499,1411,267,771,160,213,884601
+UCLA_51247,8210,11875,4913,3634,2539,1980,4995,2843,2768,1056,885,2776,610,1966,69,503,666930
+UCLA_51270,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+UCLA_51310,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+UM_1_0050272,4158,5269,4073,5713,2658,2478,5846,3346,1114,1280,2438,3573,823,493,44,305,731900
+UM_1_0050273,6822,7276,5576,8047,3862,2396,6589,4499,1727,1680,3950,1675,1194,2022,214,53,936680
+UM_1_0050274,6827,2837,7169,8373,1945,1291,5588,3106,1075,332,3344,3405,1934,1053,29,14,512277
+UM_1_0050275,4012,2311,7064,6923,3357,3369,6144,5919,1580,1752,4310,4722,1998,1956,743,746,1.19625e+06
+UM_1_0050276,4363,2840,6833,5503,1922,1415,4618,4632,1237,528,1751,1332,381,94,31,151,247331
+UM_1_0050277,5375,6117,11055,6807,1038,1939,5000,7542,643,1272,1544,4853,1306,1331,83,126,133595
+UM_1_0050278,18237,14199,8105,8748,5096,5119,7887,7569,1907,2039,6608,5439,1726,1909,1296,1082,1.81682e+06
+UM_1_0050279,3572,2717,6066,6132,3414,2806,6253,5783,1345,1371,4719,4869,1843,1902,734,459,1.32536e+06
+UM_1_0050280,8952,3457,7311,7073,3658,3002,5549,5481,1718,1523,3997,4673,1870,1817,539,390,1.50693e+06
+UM_1_0050281,3074,3884,7999,8225,4476,3808,8217,7581,2039,2232,4165,4281,1642,1794,644,742,1.4995e+06
+UM_1_0050282,3998,5053,7328,7500,3767,3981,6388,6110,1588,1430,4353,4377,2298,2438,625,917,1.54725e+06
+UM_1_0050283,6811,3947,7282,2160,2365,2214,9299,1703,794,380,1709,2362,585,918,110,168,443781
+UM_1_0050284,3225,1853,6659,6554,3074,3556,6219,5972,1326,1252,3366,3600,1307,1628,825,748,1.23359e+06
+UM_1_0050285,12747,6613,6764,7041,3065,3101,5418,5241,1198,1158,4106,4255,2191,2203,639,660,1.48196e+06
+UM_1_0050286,3639,2881,7072,6340,3323,2861,6204,6143,1213,1327,4743,4931,1780,1954,786,523,1.32536e+06
+UM_1_0050287,6006,7569,3894,4115,3293,2595,5080,4982,2069,509,2026,2074,964,918,121,364,709743
+UM_1_0050288,4237,5018,4948,5337,1205,4163,4563,4018,1494,1297,1840,2166,678,395,222,704,748015
+UM_1_0050289,14873,15801,6152,5645,3766,4045,5396,5211,1327,1347,3622,3555,1445,1388,667,512,1.20235e+06
+UM_1_0050290,4038,3025,7835,8033,3869,3940,7222,6883,1863,1697,4315,4222,1781,1889,829,862,1.39879e+06
+UM_1_0050291,3448,2068,6813,6856,3194,3697,5412,5249,1679,1612,4072,4131,1512,1347,622,549,1.18046e+06
+UM_1_0050292,6030,7627,7822,7780,4058,4214,6241,5817,1760,1824,4541,4594,1970,1833,740,728,1.52926e+06
+UM_1_0050293,8034,5763,8212,8175,3950,4154,6050,5638,1645,1484,4563,4389,1689,1726,638,646,1.47116e+06
+UM_1_0050294,2377,2355,7581,8034,4470,4443,6045,5264,1833,1648,4497,4499,1979,1439,695,684,1.49655e+06
+UM_1_0050295,4636,5219,8029,8226,3797,4445,5724,5808,1721,1350,4613,4872,1847,2314,618,846,1.59995e+06
+UM_1_0050296,3524,3806,7764,7708,3697,3819,6006,6120,1686,1644,2653,4596,1663,1826,719,739,1.47908e+06
+UM_1_0050297,7736,8891,8309,8494,4187,4095,5757,5244,1835,1550,4544,4356,2113,2001,705,703,1.611e+06
+UM_1_0050298,3742,5770,7590,7596,4624,4946,7331,7025,1811,1630,4249,4297,1528,1457,1172,852,1.30892e+06
+UM_1_0050299,4508,4218,6738,6874,2426,2494,5368,5513,1250,1523,3781,4112,1789,1626,512,640,1.30855e+06
+UM_1_0050300,2167,1975,7085,7173,3599,3689,6285,5697,1563,1643,3724,3652,1594,1516,431,538,1.21089e+06
+UM_1_0050301,3208,1848,7955,7628,4057,4015,6545,6053,2019,1585,4507,4410,2603,2353,557,664,1.59741e+06
+UM_1_0050302,3089,4310,7413,7392,3454,3619,5318,5685,1684,1291,4187,4050,1371,1325,753,603,1.33535e+06
+UM_1_0050303,17820,15162,7524,7883,4066,3986,5735,6407,1332,1408,4263,4789,1834,1525,731,898,1.38192e+06
+UM_1_0050304,4332,4146,7517,7533,3856,4011,5434,5407,1615,1727,4645,4859,1947,2013,799,657,1.51867e+06
+UM_1_0050305,2908,2908,7979,7831,4370,4265,5916,6086,2388,1972,5108,4694,1535,1949,751,670,1.54591e+06
+UM_1_0050306,8422,4795,8097,8192,4315,4472,6401,6668,1771,1611,5015,4338,1432,1435,933,884,1.20455e+06
+UM_1_0050307,3046,4101,6020,6330,4643,3725,6083,6018,1816,1885,4073,4044,1398,1567,636,492,1.20996e+06
+UM_1_0050308,3853,3495,6999,7105,4257,4941,7035,7041,1586,1747,4162,4259,1369,1502,1032,971,1.29172e+06
+UM_1_0050309,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+UM_1_0050310,3064,3644,7133,7445,3898,4010,6790,6875,1791,1850,4075,4246,1690,1587,564,730,1.55075e+06
+UM_1_0050311,6178,5158,7020,6898,4610,4836,5755,5777,1595,1556,3933,3695,1313,1417,825,662,970759
+UM_1_0050312,8131,7865,8668,8568,3542,3534,5749,5702,1622,1743,4180,4756,1447,1271,681,823,1.52508e+06
+UM_1_0050313,1466,2839,6222,6863,2335,2341,6158,5487,1477,1869,928,3779,1203,1628,529,580,1.2392e+06
+UM_1_0050314,4757,6571,8025,7695,4047,3970,6217,5976,1425,1347,4892,4805,2409,1878,864,518,1.66739e+06
+UM_1_0050315,12877,15170,8166,8577,4420,4260,6647,6102,1631,1766,4150,4541,1914,1766,536,660,1.65836e+06
+UM_1_0050316,8107,8164,7362,8392,4728,4475,6690,6675,1896,1621,4435,4147,1622,1739,667,772,1.48416e+06
+UM_1_0050317,3419,2141,7946,8006,4572,4855,7272,7466,2304,1901,4980,5188,1527,1570,1025,734,1.60767e+06
+UM_1_0050318,3574,3367,7124,7225,3629,4023,6543,6144,1646,1523,4324,4173,1612,1667,812,821,1.35822e+06
+UM_1_0050319,5724,8385,7031,7095,4049,4159,6315,5604,1505,1596,3711,3767,1730,1728,803,812,1.52096e+06
+UM_1_0050320,2675,4385,6626,6646,3328,3992,7004,6639,1717,1509,5292,4766,2012,2273,796,722,1.44254e+06
+UM_1_0050321,10992,8392,7403,7677,4077,4122,6900,5943,1413,1447,4903,4677,1839,1844,710,727,1.52957e+06
+UM_1_0050322,18204,15377,8065,8072,4301,4531,7041,6936,1896,1696,4986,5246,1865,1971,585,780,1.57333e+06
+UM_1_0050323,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+UM_1_0050324,6318,3340,7686,7790,3785,3655,5276,5247,1237,1119,4433,4981,1904,2183,669,733,1.67623e+06
+UM_1_0050325,6651,6716,7630,8520,4736,4773,5873,5467,1808,1663,4345,4200,1349,1586,882,662,1.57071e+06
+UM_1_0050326,5190,4760,7665,7313,4563,4439,5524,5292,1625,1490,4000,4050,1492,1491,757,687,1.55379e+06
+UM_1_0050327,2585,1514,4674,4393,1401,1545,4991,3522,1597,948,2520,1583,1275,755,202,392,370898
+UM_1_0050328,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+UM_1_0050329,6933,11249,8612,8658,4618,4761,6579,6184,1722,1623,4878,4511,1655,1845,725,582,1.97551e+06
+UM_1_0050330,12134,12699,7736,7814,4319,4698,5851,5903,2043,1612,4716,4774,1868,2291,886,637,1.5085e+06
+UM_1_0050331,4106,5197,8027,8136,4109,4057,6621,6283,1963,1648,4845,4717,1856,1832,566,555,1.52497e+06
+UM_1_0050332,3240,1623,6422,6448,3426,3739,6112,6116,1549,1669,4029,3999,1575,1606,590,747,1.36721e+06
+UM_1_0050333,10931,9635,7705,8244,4410,4665,6387,6401,1773,1900,4253,4305,1941,1941,707,811,1.58671e+06
+UM_1_0050334,1690,1613,7945,8457,3367,3592,6543,5976,1584,1390,4596,4544,1709,1765,735,703,1.28356e+06
+UM_1_0050335,3718,4252,7444,7477,3873,4152,6264,5958,1748,1525,4305,4362,1812,2121,565,513,1.40261e+06
+UM_1_0050336,3408,3188,6198,6471,3670,3938,6134,5795,1304,1230,4356,4594,1503,1682,605,678,1.16399e+06
+UM_1_0050337,2706,3418,7885,7671,3910,4035,6813,6599,1571,1611,4191,4438,1917,2281,723,734,1.60683e+06
+UM_1_0050338,6430,3977,6208,6147,3498,3448,6012,5733,1504,1307,3730,3779,1191,1317,455,637,1.32776e+06
+UM_1_0050339,4965,7342,8738,8839,4514,4753,6882,6475,1750,1569,4788,4773,2069,2319,811,713,1.76334e+06
+UM_1_0050340,3063,3023,6987,7257,3729,3713,5646,5443,1532,1417,3723,4060,1896,1945,523,649,1.43551e+06
+UM_1_0050341,4412,6403,6935,7329,3695,3737,6002,5670,1437,1253,3809,3941,1739,1347,584,634,1.02794e+06
+UM_1_0050342,10239,9131,7175,7092,3510,3561,5964,5754,1529,1376,4010,3775,1662,1386,580,601,1.50011e+06
+UM_1_0050343,5460,2557,6174,6155,2944,2753,5329,5091,1505,1455,3402,3476,1452,1382,561,517,1.07586e+06
+UM_1_0050344,2275,1813,6734,7185,2796,2941,6093,5773,1449,1414,3973,3918,1466,1633,438,459,1.34359e+06
+UM_1_0050345,8460,7389,8091,7762,4565,4457,6477,6464,1946,1695,4303,3996,1407,1547,882,478,522063
+UM_1_0050346,5743,10578,7397,7584,3472,3754,5459,5240,1774,1539,4909,4490,1879,2136,690,376,1.65436e+06
+UM_1_0050347,5055,4650,7072,7552,3968,3818,6173,5864,1559,1381,3929,3874,1945,1428,623,475,1.27779e+06
+UM_1_0050348,2295,2003,6664,7018,4030,4280,5843,5697,1617,1439,4301,4150,1573,1765,624,606,1.03365e+06
+UM_1_0050349,4768,3188,8686,9241,3617,3871,6974,6533,1857,1524,4888,4756,1812,1838,692,672,1.65634e+06
+UM_1_0050350,8550,8143,8291,8735,5000,4996,6688,6536,1900,1750,3857,6241,1769,1653,957,927,1.73e+06
+UM_1_0050351,4409,3650,7710,7557,4485,4470,5946,6061,1672,1457,4370,4420,2010,1983,860,749,1.53422e+06
+UM_1_0050352,9806,8152,7938,8226,4148,4445,6529,6007,1680,1392,4375,4927,2480,2190,763,487,1.69954e+06
+UM_1_0050353,14282,12969,7557,7393,3787,3897,5291,5090,1623,1219,3925,3520,1382,1390,897,471,1.49528e+06
+UM_1_0050354,4909,5808,7221,7462,3523,3705,5773,5601,1408,1346,4447,4504,1869,1702,659,621,1.43043e+06
+UM_1_0050355,2172,2382,7194,7627,3315,3486,6526,5696,1314,1470,4392,4274,1642,1972,659,687,1.28021e+06
+UM_1_0050356,4853,5577,6331,6562,3381,3557,5175,5085,1407,1157,3672,3438,1456,1594,352,463,1.29314e+06
+UM_1_0050357,4603,5875,7037,7826,4279,4282,6662,6900,1858,1760,3853,4164,1688,1551,850,1034,1.34933e+06
+UM_1_0050358,10714,8032,7492,7801,3816,3846,6709,6513,1742,1460,4213,4648,1586,1594,573,596,1.23735e+06
+UM_1_0050359,2628,2642,5611,6026,3253,3392,5190,5431,1221,1298,4016,3950,1692,1916,706,730,1.24513e+06
+UM_1_0050360,1641,2822,6781,6995,2960,3318,6050,6099,1351,1383,4629,4690,1984,1859,506,554,1.49845e+06
+UM_1_0050361,7165,3281,7514,7535,3747,3578,5774,5437,1528,1464,4327,4403,1932,2132,807,568,1.45786e+06
+UM_1_0050362,3367,2504,7330,7282,3987,4110,6973,7037,1793,1835,4696,4476,1481,1452,909,676,1.44413e+06
+UM_1_0050363,9097,17102,9111,9040,4299,4740,6993,6766,1718,1753,5126,4261,1968,1912,724,936,1.65291e+06
+UM_1_0050364,2038,2525,7087,7142,3863,4004,6239,6412,1683,1455,4289,4310,2029,1838,677,710,1.44476e+06
+UM_1_0050365,1681,1130,6327,6502,3221,2796,4964,4629,1660,1462,3533,3285,1593,1962,798,597,1.27681e+06
+UM_1_0050366,2781,3205,7528,6953,3429,4220,6801,7296,2145,1940,5045,4413,1586,1701,832,781,1.51234e+06
+UM_1_0050367,2219,3717,7748,7928,3986,3922,5817,5441,1891,1628,4510,4091,1697,1723,595,723,1.47955e+06
+UM_1_0050368,6692,3466,7555,7808,3779,3667,6764,6426,1674,1563,4858,5131,2325,2442,745,644,1.66609e+06
+UM_1_0050369,2767,3636,6517,6633,3042,3441,5907,5583,1571,1503,4102,4105,1646,1799,730,566,1.35155e+06
+UM_1_0050370,2388,2581,5977,6132,3751,3686,5563,5243,1511,1223,3881,3703,1563,1576,586,544,1.52266e+06
+UM_1_0050371,4761,3043,8063,7679,4452,4573,6743,7003,2095,1874,5143,3715,1609,2066,712,824,1.66628e+06
+UM_1_0050372,1659,1657,7138,7182,3824,3459,6054,6007,1712,1455,4271,4892,1787,1785,674,840,1.53454e+06
+UM_1_0050373,3927,3001,7436,7790,4242,4186,5951,5896,1652,1499,4975,4477,1681,1953,491,734,1.59542e+06
+UM_1_0050374,4923,4384,7043,6957,3820,3800,5308,5607,1537,1293,4026,4235,1269,1450,530,544,1.35816e+06
+UM_1_0050375,2775,2551,6685,6946,3642,3332,5618,5320,1565,1451,3487,3602,1250,1109,670,595,1.30995e+06
+UM_1_0050376,9698,11631,7107,6651,4171,4329,5376,5977,1870,1461,3835,3631,1398,1358,720,671,1.00191e+06
+UM_1_0050377,3159,3516,8681,8468,4715,4660,6571,6729,2120,1733,5137,4871,2041,2169,825,755,1.4729e+06
+UM_1_0050378,8683,3688,7425,7972,3556,3472,6002,5458,1628,1391,3764,4082,1589,1761,539,482,1.54368e+06
+UM_1_0050379,2609,3033,7272,6914,3250,3833,6198,5206,1580,1303,4441,4778,1471,1650,750,656,1.41453e+06
+UM_1_0050380,3959,9854,7025,7145,3802,4266,6603,6528,1688,1527,4001,3944,1624,1674,738,868,1.50915e+06
+UM_1_0050381,4735,4540,8139,8366,4640,4924,6546,6176,1879,1817,5079,4940,2020,2274,820,779,1.40935e+06
+UM_2_0050382,5379,4981,6718,7215,3546,3856,5961,6105,1563,1338,5229,5365,1668,1926,810,893,1.36021e+06
+UM_2_0050383,3400,3289,7405,7726,4243,4215,8680,8394,1826,1622,4655,4264,2023,1910,925,928,986141
+UM_2_0050385,6343,2921,7062,7233,3545,3339,7121,7034,1395,1302,4097,4007,2017,1806,907,919,1.0939e+06
+UM_2_0050386,4481,3375,7772,7877,3606,3752,7802,7245,1919,1724,5335,5758,2029,2295,989,951,1.33018e+06
+UM_2_0050387,2697,2227,6111,6171,3571,3629,6171,5539,1621,1323,4106,4440,1600,1633,807,757,1.25556e+06
+UM_2_0050388,7357,4407,6632,6859,3675,3393,6517,6262,1668,1478,4990,4895,1658,1978,704,789,1.4903e+06
+UM_2_0050390,9820,8602,6808,6147,3554,3507,6003,5124,1424,1338,4123,744,1566,940,643,691,1.30309e+06
+UM_2_0050391,10241,7352,8428,8163,4581,4529,7139,7178,1650,1736,4813,4817,2063,2156,751,874,1.37899e+06
+UM_2_0050397,6089,8700,6766,6701,4031,3962,5556,5373,1292,1185,4552,4022,1273,1555,646,589,1.47541e+06
+UM_2_0050399,11758,9530,6650,7152,3031,2874,5024,4710,1232,1137,4305,4697,1681,1968,466,530,1.50333e+06
+UM_2_0050402,4208,3289,6680,7065,4077,3832,7226,5917,1702,1834,3581,3862,1754,1656,706,804,1.28617e+06
+UM_2_0050403,5614,8376,7100,7044,5382,4897,7691,7294,1930,2094,4906,4889,1599,1692,552,728,1.75754e+06
+UM_2_0050404,4095,4345,4991,4663,3298,2948,3776,3953,1212,882,3050,3029,809,1145,481,579,975064
+UM_2_0050405,6770,4949,7885,7794,4775,4661,6867,7015,2079,1886,3914,3807,1648,2022,610,816,1.57983e+06
+UM_2_0050406,8340,4379,7588,8593,4070,3842,6508,5851,2024,1781,4336,4953,1638,1779,455,808,1.59671e+06
+UM_2_0050407,2546,3459,6944,8047,3772,3705,5017,5217,1609,1832,3579,3768,1392,1369,714,734,1.27935e+06
+UM_2_0050408,5401,5051,9053,7340,4958,4836,6418,6789,2280,1788,3983,4294,1648,1944,488,685,1.63071e+06
+UM_2_0050410,3322,4747,7055,9040,3990,4531,7379,6596,2139,1763,3849,3807,1847,2080,539,871,1.63629e+06
+UM_2_0050411,6086,5043,7677,7190,5360,5344,7109,6959,2039,1923,4563,4197,1375,1397,623,1050,1.84348e+06
+UM_2_0050412,3405,4049,6483,6041,4448,4432,7142,6011,1561,1599,4597,4353,1501,1291,694,527,1.48537e+06
+UM_2_0050413,13385,16025,7688,7621,5476,5353,6994,6859,1820,1950,3731,3429,1575,1637,596,929,1.53596e+06
+UM_2_0050414,3033,2271,7163,7041,4716,4503,7520,6782,1974,1634,4170,4416,1564,1837,835,715,1.30895e+06
+UM_2_0050415,5786,5141,7380,6749,4352,4394,7349,5741,1951,1764,4011,4019,2192,1955,551,700,1.46572e+06
+UM_2_0050416,8831,6040,8891,7135,5569,4723,7692,7119,2244,1670,4125,4608,1064,1428,534,647,1.67237e+06
+UM_2_0050417,4156,2405,7116,9775,4234,4097,5246,5625,1666,1597,3239,3279,1103,1261,566,715,1.47367e+06
+UM_2_0050418,2619,2638,7976,6773,4442,3995,7283,6122,1980,1452,3642,3958,1552,1359,722,923,1.54267e+06
+UM_2_0050419,1564,1730,5890,5556,3674,4024,5576,5942,1498,1521,3113,3362,1258,1372,526,757,1.26888e+06
+UM_2_0050421,5849,3281,6629,7712,5087,4880,5987,6218,1832,1610,3906,4406,1394,1411,628,728,1.60185e+06
+UM_2_0050422,5255,6266,6973,7292,4780,5005,5758,5989,2316,1765,4063,3822,1431,1374,689,598,1.60325e+06
+UM_2_0050423,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+UM_2_0050424,7543,7498,7831,7829,4730,4227,5254,5991,1923,1846,3765,3863,1534,1530,580,805,1.40557e+06
+UM_2_0050425,4212,4175,7822,7094,3686,3938,8167,5774,1751,1601,4062,4078,1813,1364,621,653,1.47578e+06
+UM_2_0050426,11631,5231,7161,7605,4220,4090,5767,6001,1663,1377,3684,4284,1907,1839,781,553,1.48052e+06
+UM_2_0050427,3936,5048,7931,7227,4252,4532,6059,6421,2091,1733,3815,3894,1209,1547,718,1038,1.35579e+06
+UM_2_0050428,3128,2478,6988,7395,3317,3532,6389,6055,1394,1775,4071,3955,1392,1488,570,677,1.14662e+06
+USM_0050432,27743.6,18569.2,10800.4,11758,6095.1,6309.2,7903.9,7944.9,2365,2455.9,4776.7,5221.9,2266.7,2726.8,865.8,833.4,2.29039e+06
+USM_0050433,5258,5329,7604,8182,3921,4106,6240,6025,1925,1670,4127,4261,1786,1823,742,804,1.61966e+06
+USM_0050434,3133,4459,6830,6751,3318,3589,5960,5477,1683,1529,3760,3633,1531,1381,708,739,1.37739e+06
+USM_0050435,10000,6284,8480,9050,4335,4509,7246,7029,2231,2190,4533,4298,1921,1985,784,926,1.72758e+06
+USM_0050436,3897,3248,7649,8588,6597,6893,8129,7398,2562,2388,5335,5176,2193,2133,1232,1062,1.64161e+06
+USM_0050437,2370,2080,7884,8304,3224,3905,8176,7326,2496,2261,4508,4424,2124,1931,799,716,1.63756e+06
+USM_0050438,3626,3184,7262,7770,4680,4599,6739,6587,2037,1911,4473,4847,1826,2139,742,877,1.6164e+06
+USM_0050439,4806,4178,7929,8364,5270,5458,7531,7253,2210,2130,5101,5004,2089,2281,978,1033,1.80059e+06
+USM_0050440,6719,4965,7040,7552,3722,3853,6082,5884,1677,1599,4064,4139,1780,1489,763,635,1.61098e+06
+USM_0050441,3890,3935,8208,8812,4344,4508,7464,6742,2225,2077,4389,4543,2183,2076,954,964,1.69944e+06
+USM_0050442,4173,4972,7617,8231,4334,4893,7279,6654,2058,1909,5344,4822,2154,1922,896,952,1.70318e+06
+USM_0050443,4271,5330,7903,8643,3996,4401,6961,6799,2100,2237,4424,4423,1920,1817,931,881,1.73265e+06
+USM_0050444,4332,4662,6356,7098,3483,3421,5846,5879,1891,1641,4076,4139,1694,1746,648,863,1.417e+06
+USM_0050445,6670,5891,7094,7486,4234,4174,6849,6724,1936,1570,4355,4221,1772,1763,708,906,1.5871e+06
+USM_0050446,18630,11715,8534,9415,4470,4551,7268,6870,2093,1711,4585,4954,2496,2280,921,986,1.82938e+06
+USM_0050447,3388,4250,7652,8407,4541,4695,7429,7488,2094,2119,5025,5221,2092,1912,936,1137,1.65245e+06
+USM_0050448,2621,3239,8321,8896,4098,4723,8119,7618,2333,2188,4682,5212,1983,1968,1075,889,1.62115e+06
+USM_0050449,4916,8560,7044,7190,3316,3710,5884,5836,1650,1738,4324,4097,1914,1864,877,843,1.63007e+06
+USM_0050450,1897,1972,7634,8591,3930,4286,7048,6922,2164,2244,4337,4341,1995,1907,885,832,1.78337e+06
+USM_0050451,4070,3185,7601,7959,4218,4237,6871,6859,1764,1876,3811,3894,2066,2350,749,899,1.44105e+06
+USM_0050452,5368,4056,7842,8328,3972,4142,6801,6964,1935,1986,4023,4469,1774,2032,611,700,1.69945e+06
+USM_0050453,1806,1504,6909,7225,3971,4240,7227,6600,1978,1929,2218,4453,1414,1754,1002,966,1.47199e+06
+USM_0050454,2607,2654,7448,7969,4464,4602,7762,7559,2196,2085,4682,4631,2245,2201,934,893,1.56971e+06
+USM_0050455,5366,5015,7564,8255,3921,4111,7319,7229,1902,2063,4781,4653,1831,2060,1008,979,1.73969e+06
+USM_0050456,4736,4569,8005,8230,4010,4343,7349,7098,2130,2111,4613,4583,1841,2181,781,929,1.7108e+06
+USM_0050457,5147,4183,7972,8011,4187,4421,6827,6405,1855,1661,4962,4959,2271,2437,977,1066,1.61496e+06
+USM_0050458,8336,5390,6775,7180,4110,4327,6365,6227,2051,1835,4140,4382,1873,1875,779,618,1.52948e+06
+USM_0050459,5014,7940,7820,8131,3929,4318,7262,7398,1901,2068,4555,4512,2043,1974,991,941,1.58488e+06
+USM_0050460,2289,3124,8164,8795,4629,4893,8285,8241,2451,2137,4938,5031,2230,2426,976,1163,1.83514e+06
+USM_0050461,4853,5400,7866,8276,4751,4993,7148,7079,2047,1777,4284,4241,1997,1836,793,731,1.57345e+06
+USM_0050462,11055,10794,8020,8190,4346,4590,8660,8709,2185,1874,4733,4795,2063,2482,1037,1012,1.79076e+06
+USM_0050463,9290,7567,7339,7882,4751,4725,6358,5556,1909,1594,4639,4764,1924,1638,749,784,1.637e+06
+USM_0050464,4657,3804,7269,7927,4331,4794,7255,6989,2079,2041,4003,4115,1657,1793,977,996,1.54766e+06
+USM_0050465,11477,8354,7180,7633,4592,4563,6862,6570,1968,1933,4158,4288,1563,1820,885,801,1.50771e+06
+USM_0050466,5653,7112,6431,6728,3547,3721,5900,5533,1542,1946,3788,3873,1854,1660,653,749,1.45006e+06
+USM_0050467,5149,3304,7280,8147,3307,3609,7300,7831,1945,1877,4384,4875,1764,2235,764,1012,1.49705e+06
+USM_0050468,6197,5824,8167,8263,4148,4251,6591,6498,2094,1630,4703,4448,1781,1901,915,886,1.73413e+06
+USM_0050469,8097,4516,8025,8401,3721,3705,7299,6828,2312,1997,4100,4300,2134,1885,903,959,1.60311e+06
+USM_0050470,4091,2855,7567,7333,3713,3943,6746,6171,2069,1820,4066,3801,1959,1600,998,922,1.53324e+06
+USM_0050471,3603,3090,7883,8351,3780,3838,6720,5949,1927,1877,4570,4739,2300,2156,861,826,1.64891e+06
+USM_0050472,7806,5007,6963,7500,3819,3896,6320,5675,2001,1851,4092,4167,1830,1692,785,578,1.51691e+06
+USM_0050473,9162,6770,8181,9171,4589,4700,6322,6516,1984,2004,4325,4315,1693,1794,778,758,1.85713e+06
+USM_0050474,2983,2287,7127,7528,4247,4251,6677,6336,2186,1902,3919,3970,1727,1844,896,835,1.62846e+06
+USM_0050475,7860,8032,7829,8009,4715,4932,7011,6768,2134,2051,4627,4702,2066,2491,787,940,1.63315e+06
+USM_0050476,14653,9420,6533,7258,4492,4772,6297,6313,1854,1602,4396,4676,1723,1761,786,764,1.44973e+06
+USM_0050477,4809,2426,7167,7542,3556,3641,6546,6611,1941,1945,4345,4543,1856,1920,933,917,1.52622e+06
+USM_0050478,4085,4801,6977,7489,3635,3787,6839,6810,1979,1654,4818,4523,1945,1975,1050,1070,1.55755e+06
+USM_0050479,9121,10107,8008,8171,4547,4666,7582,7278,2122,1993,4830,4983,2086,2416,773,792,1.78107e+06
+USM_0050480,6511,5885,8981,8133,4200,4453,7976,6947,2360,2173,5084,2455,2274,1782,1106,869,1.76032e+06
+USM_0050481,5577,3573,7861,8147,3592,3747,6478,5832,2013,1757,4176,4620,1997,1863,876,697,1.42136e+06
+USM_0050482,18009,21812,6317,7105,3703,4051,5923,5898,1644,1606,3778,4003,1443,1764,612,607,1.4064e+06
+USM_0050483,6770,3785,6767,7404,3688,3750,6249,6023,1964,1851,4005,4097,2089,1771,793,682,1.44526e+06
+USM_0050484,7597,4853,7942,8469,4956,5041,8565,8346,2402,2403,4979,5176,1989,2112,1082,1021,1.77924e+06
+USM_0050485,16656,9703,8154,8748,4890,5279,7578,7334,2097,2106,4411,4921,2039,2214,1050,918,1.75732e+06
+USM_0050486,3860,8607,7949,8265,3857,4535,8286,7763,1926,1760,5370,4628,1822,1917,1160,1134,1.59543e+06
+USM_0050487,3480,2801,8735,9708,4568,4739,6578,6758,1736,1957,3999,4139,1532,1618,734,628,1.25635e+06
+USM_0050488,7140,5750,7662,8047,4779,5184,7072,7028,2051,2380,3531,5180,1882,2013,919,739,1.69793e+06
+USM_0050489,9926,7402,8216,9256,5756,5727,8446,7875,2487,2805,5160,5875,1819,1796,572,761,2.05183e+06
+USM_0050490,7036,5998,7835,8182,4210,4574,7432,7109,2092,1788,4199,4395,1809,1509,767,689,1.67132e+06
+USM_0050491,5514,7945,7856,8463,4303,4711,7818,7676,1833,1597,4763,4618,2142,2292,987,824,1.69732e+06
+USM_0050492,8257,3849,7932,8756,4295,4513,7281,7143,2193,2024,4147,4555,1757,1768,834,990,1.56796e+06
+USM_0050493,5405,3754,7071,7199,3875,3790,7423,7397,2082,1883,4608,5074,2164,2304,649,767,1.70655e+06
+USM_0050494,10728,8490,6488,7268,4373,4728,4949,4752,1857,1594,4237,4093,1856,1889,910,682,1.56252e+06
+USM_0050495,5430,6223,7025,7238,3372,3600,7029,6648,2108,1807,4533,4672,1943,2065,685,739,1.57414e+06
+USM_0050496,4033,2726,7386,7603,4035,4317,7039,6679,1829,1633,4499,4674,1905,1744,868,754,1.57578e+06
+USM_0050497,7357,6231,6894,7615,4266,4548,7200,7151,2082,2039,4672,4715,1934,1905,885,908,1.63846e+06
+USM_0050498,4951,2694,7715,8147,4296,4435,7455,7172,2048,1951,4105,4614,2173,1955,919,934,1.55815e+06
+USM_0050499,5588,5231,6725,7300,5126,5407,7430,7265,2025,1837,4295,4611,2148,2252,872,932,1.62958e+06
+USM_0050500,3361,3239,9458,9493,4907,4778,8267,7658,2380,1965,5296,5654,2589,2347,1183,1091,1.87432e+06
+USM_0050501,4736,5885,8025,7639,3927,4333,6885,6101,1969,1802,4534,4473,1849,1785,868,821,1.54109e+06
+USM_0050502,5137,3326,7248,7630,3550,4141,6588,6587,1940,2130,4375,4442,2460,2289,858,811,1.66643e+06
+USM_0050503,3723,3620,6573,6937,2930,3074,5066,4979,1575,1409,4310,4132,1761,2114,553,681,1.21255e+06
+USM_0050504,4317,4366,7172,8117,3824,4224,7809,7296,2011,2058,4535,4462,1847,1818,916,794,1.76523e+06
+USM_0050505,23330,21157,7237,7845,4107,4328,7553,7252,1798,1732,4452,4429,1873,1887,905,861,1.70544e+06
+USM_0050506,3767,5245,8208,8629,4096,4413,8510,7479,2301,2182,4404,4526,1854,1508,797,820,1.61259e+06
+USM_0050507,10954,10926,6871,6826,3495,3398,6510,5372,1619,1482,3611,3419,1704,1594,774,747,1.34663e+06
+USM_0050508,10308,14101,5950,6345,3462,3954,6273,6727,1734,1528,4290,4643,2118,2181,680,753,1.48261e+06
+USM_0050509,8641,8832,8592,9844,5336,5418,7854,7296,2481,2588,5064,5078,2382,2359,875,1047,2.09409e+06
+USM_0050510,6262,5399,6768,7338,3586,3866,6027,5857,1788,1753,3980,3934,1186,1257,561,656,1.41364e+06
+USM_0050511,5879,5395,10173,10524,4622,4472,9235,8020,2566,2633,5756,5570,2305,2428,848,779,1.92014e+06
+USM_0050512,10082,12488,8217,8480,4958,5455,7283,6440,2241,2048,3004,4561,1834,1717,973,868,1.83306e+06
+USM_0050513,6124,5720.1,6740.6,7767.4,3780,5259.2,7968.2,7721.9,2178.9,2221.2,4814,4880.4,1924.3,1971.3,839,936.5,1.47517e+06
+USM_0050514,3130,2918,6264,6916,3332,3466,6002,5830,1649,1522,3702,2867,1475,493,593,646,1.34644e+06
+USM_0050515,14083,11662,7323,7253,4521,4602,7336,7014,2263,1966,4521,4571,1901,2363,838,955,1.58352e+06
+USM_0050516,3999,3608,7365,8528,5096,5141,7873,7118,2219,2103,4311,4170,2080,1970,954,1025,1.61655e+06
+USM_0050517,5985,7489,8060,8843,4984,5271,8785,8199,2329,2135,5024,5321,2448,1921,1220,851,1.77535e+06
+USM_0050518,4278,3970,7928,8392,4164,4332,8198,7704,2240,2169,4796,5036,2065,1985,965,1055,1.67507e+06
+USM_0050519,11817,10551,7602,8158,4590,4752,6714,6230,2247,2121,4505,4618,1709,1538,756,708,1.53164e+06
+USM_0050520,2280,2533,7163,7915,4294,4305,7065,7040,1870,1742,4296,4279,2371,2229,1035,1328,1.57461e+06
+USM_0050521,4760,3831,7110,7354,4388,4480,6192,6012,1861,1813,3843,4030,1817,1561,906,815,1.48569e+06
+USM_0050522,10954,8064,5922,6367,3728,3673,6657,6151,1738,1535,3549,3552,1799,1551,800,756,1.47716e+06
+USM_0050523,6546,8692,8654,8019,4279,4710,7503,7469,2085,1815,4568,5095,1996,2545,1035,936,1.72411e+06
+USM_0050524,5429,3887,7251,7389,5343,5263,7134,6690,1875,1692,3959,4016,1851,1912,1024,1133,1.55434e+06
+USM_0050525,7707,7455,8261,8521,4839,4986,7752,7375,2214,2079,4611,4861,2483,2301,872,973,1.76193e+06
+USM_0050526,9526,11372,6612,6723,3864,4026,5404,5213,1644,1421,3928,3950,1766,1907,716,790,1.5445e+06
+USM_0050527,6046,4052,7581,7999,3152,3403,7006,6827,1569,1598,4506,4585,1925,1980,807,813,1.68276e+06
+USM_0050528,4177,3144,9529,9605,5020,5308,8056,7692,2442,2172,5595,5371,2217,1970,946,1053,1.63359e+06
+USM_0050529,12016,8661,6571,7141,3312,3652,5908,5540,1446,1383,4594,4764,1943,1829,775,675,1.521e+06
+USM_0050530,6418,6118,7622,7971,4563,4601,6723,6601,2134,2095,3933,3633,1914,1962,701,1067,1.62204e+06
+USM_0050531,4128,3005,6658,6550,3281,3232,4963,4869,1425,1347,3638,3635,1524,1807,695,645,1.33524e+06
+USM_0050532,2343,1663,6616,6586,2783,2781,5577,5398,1756,1601,4397,4304,1559,1695,556,743,1.35177e+06
+Yale_0050551,2899,2346,6125,6451,3099,3156,6710,6502,1811,1434,3918,3951,1869,1692,638,885,1.08673e+06
+Yale_0050552,2733,2496,5893,6031,3826,3791,6252,6066,1904,1760,4743,4223,1991,1983,651,818,1.17005e+06
+Yale_0050553,3774,3705,6514,6626,3758,3823,6119,5886,1537,1506,3366,3981,1534,1575,873,891,753908
+Yale_0050554,5347,3437,5760,6442,2959,3218,5477,6005,1821,1542,3762,3748,1486,1671,570,658,1.03836e+06
+Yale_0050555,5634,4797,8347,9380,4153,4634,7649,7081,2339,1754,3925,4092,1899,1856,839,1052,1.33743e+06
+Yale_0050556,3385,4873,6457,6349,3573,3890,7162,6555,2210,1724,3988,3760,1423,1600,974,742,64551.4
+Yale_0050557,3591,3908,8016,7396,4551,5112,7771,7307,2270,1878,4954,4959,1800,1916,1089,1033,1.20382e+06
+Yale_0050558,4137,3959,5942,6172,3472,3482,5109,4876,1669,1569,3654,3929,1536,1930,672,775,1.00956e+06
+Yale_0050559,3393,2681,7022,7489,3935,3743,9132,7925,2347,1931,4140,4424,2109,2100,1060,946,1.36801e+06
+Yale_0050560,1834,1854,7059,7345,3417,3626,7434,6537,2141,1854,4130,4119,1594,1570,788,797,1.45328e+06
+Yale_0050561,3388,2592,6941,6980,3825,4229,6860,6465,2289,1660,4202,4515,1543,2000,774,936,1.18314e+06
+Yale_0050562,3985,2792,8292,7357,4602,4342,9150,8173,2671,2204,4782,4336,1858,2248,975,1138,1.33023e+06
+Yale_0050563,2525,1977,5324,5524,3173,3075,6218,6044,1722,1491,4306,4303,1565,1918,1092,797,1.01992e+06
+Yale_0050564,2679,2904,6308,6602,3258,3591,7398,7194,1909,1557,3744,3965,1674,1653,679,728,1.18695e+06
+Yale_0050565,4167,3440,6443,6644,3252,3640,6240,6567,1923,1629,4068,4273,1669,2335,809,836,1.38231e+06
+Yale_0050566,4466,3247,5934,6270,3624,3951,6397,6325,1959,1728,4047,4321,1482,1867,844,889,1.36132e+06
+Yale_0050567,3701,3220,5988,6380,3267,3534,6963,6465,1761,1541,4491,4319,1881,1907,811,795,1.37742e+06
+Yale_0050568,3921,3208,6047,6700,3246,3116,6463,6527,1518,1319,2634,4418,1897,2103,780,841,1.02279e+06
+Yale_0050569,3762,2738,5813,6485,2919,3108,6297,6291,1927,1546,3450,3390,1428,1809,838,866,991873
+Yale_0050570,17939,22043,7467,8176,4821,4850,7464,7739,2441,1909,3992,4290,1734,1641,831,832,1.54106e+06
+Yale_0050571,7832,5174,6504,6429,3357,3310,7108,6801,1952,1632,4425,4257,1584,1850,706,1031,1.2377e+06
+Yale_0050572,9036,7065,6841,7234,3537,3655,6940,6397,2002,1605,4302,4160,1591,1598,911,795,1.22967e+06
+Yale_0050573,2223,3079,6627,7164,3437,3674,7815,7330,1890,1611,4115,3943,1662,1708,964,1039,1.21115e+06
+Yale_0050574,4448,5128,6897,7173,4455,5080,6952,6944,1622,1722,3694,3802,1351,1622,1064,1041,1.49321e+06
+Yale_0050575,14674,11938,7341,7734,3823,4064,6885,6602,2206,1817,4434,4616,2391,2113,901,1162,1.41399e+06
+Yale_0050576,3524,2497,5597,5926,3481,3423,6658,6579,1715,1468,3630,3619,1475,1811,911,939,1.00338e+06
+Yale_0050577,3170,3975,5986,6600,3536,3389,6922,6331,1741,1440,4092,4020,1586,1908,867,702,1.23458e+06
+Yale_0050578,3773,3103,6113,6161,3775,3864,7333,6836,1890,1385,3300,4052,1879,1815,889,923,1.13721e+06
+Yale_0050601,8767,4360,6902,6541,3459,3518,8031,6538,1907,1704,3979,3868,2308,1867,1048,847,1.12653e+06
+Yale_0050602,6514,3965,7071,7149,5047,4783,7335,7249,2048,1754,4152,4224,1594,1903,933,866,1.0791e+06
+Yale_0050603,5655,6814,8402,8437,4131,4548,8181,7863,2654,2280,4586,4741,1542,1588,991,1011,961639
+Yale_0050604,3419,3086,6287,6797,4032,4226,6273,6390,2106,1851,4365,4538,1328,1277,731,811,1.05532e+06
+Yale_0050605,6210,6379,6668,7417,4805,5183,7222,7169,2735,1882,2898,4367,1421,1670,924,996,1.48794e+06
+Yale_0050606,4151,2711,7399,7497,4672,4380,9542,9005,3308,2484,4613,4620,1882,1904,873,911,1.32061e+06
+Yale_0050607,2894,3650,6715,7391,3847,4025,7812,7496,2402,1888,5141,4799,2033,1954,1109,983,1.27518e+06
+Yale_0050608,3464,3576,8622,8435,4249,4862,7859,7580,2658,2267,4719,4735,2106,1869,894,1041,1.40869e+06
+Yale_0050609,3111,3372,7659,7489,3458,3602,7265,6924,2318,1953,3976,4013,1399,1218,826,731,1.15533e+06
+Yale_0050610,4190,3462,7515,7422,3107,3279,7478,6816,2101,1865,4515,4082,1039,1273,1139,996,926700
+Yale_0050611,4749,4176,8087,8374,3715,3973,7356,6658,2355,2030,4280,4355,1399,1743,1224,1150,855812
+Yale_0050612,4978,5735,7673,8344,4148,4299,7038,6643,1862,2041,4216,4325,1602,1758,964,968,1.41673e+06
+Yale_0050613,3292,2022,6888,7226,3453,3487,8229,8509,2095,1744,4764,4485,1705,2004,839,910,1.37269e+06
+Yale_0050614,7594,6317,5742,6061,3930,3981,6652,6728,1896,1637,4085,4300,1860,1897,969,1020,1.06369e+06
+Yale_0050615,3186,2289,5401,5852,2944,3033,5792,5752,1534,1254,3687,3912,1409,1475,896,827,929770
+Yale_0050616,2532,1337,6690,7348,3595,3609,7645,7234,1976,1672,4673,4441,2077,2471,847,904,1.43346e+06
+Yale_0050617,3997,3638,6166,6281,2857,2991,6750,6636,1696,1609,3557,3651,1225,1350,1042,932,1.11521e+06
+Yale_0050618,3650,1992,6012,6598,3193,3318,7772,7628,1985,1915,4274,3957,1616,1884,785,939,1.18741e+06
+Yale_0050619,4942,5673,7029,7051,4358,4606,6867,6822,1691,1521,4783,4744,1971,2294,1011,1113,1.50409e+06
+Yale_0050620,3204,3795,5803,6046,3258,3205,6633,6260,1651,1321,3901,3902,1592,1480,597,709,1.09099e+06
+Yale_0050621,2811,2583,6432,7257,3320,3752,6523,6843,2040,1553,4397,4610,1461,1967,847,817,1.00765e+06
+Yale_0050622,10676,8803,6278,6545,4526,4498,8141,7871,2095,1657,4507,4401,1940,2124,936,1140,1.21957e+06
+Yale_0050623,3417,2422,7287,7407,3622,3950,8054,7312,1923,1695,4391,4355,1842,1951,943,922,1.16993e+06
+Yale_0050624,4087,3290,5507,5549,3441,3516,6494,6339,2004,1454,4180,4339,1395,1669,647,802,1.04333e+06
+Yale_0050625,3719,3815,5676,5832,3996,3880,6127,6350,1803,1573,4172,3804,1833,1794,774,924,1.2268e+06
+Yale_0050626,6495,7003,6653,7032,4703,4824,7185,7389,1972,1737,4326,4322,2427,2473,957,920,1.50413e+06
+Yale_0050627,6515,4184,5852,6219,3919,3906,7377,6818,1754,1585,4163,4052,1574,1492,803,766,1.03232e+06
+Yale_0050628,3700,2685,6209,6566,3666,3714,7296,7213,1874,1570,4272,3930,2039,2420,1099,1010,1.15122e+06
+</pre>
+
+		<p class="file_page_meta no_print" style="line-height: 1.5rem;">
+			<label class="checkbox normal mini float_right no_top_padding no_min_width">
+				<input type="checkbox" id="file_preview_wrap_cb"> wrap long lines
+			</label>
+		</p>
+
+	</div>
+
+	<div id="comments_holder" class="clearfix clear_both">
+	<div class="col span_1_of_6"></div>
+	<div class="col span_4_of_6 no_right_padding">
+		<div id="file_page_comments">
+			<div class="loading_hash_animation">
+	<img src="https://a.slack-edge.com/f85a/img/loading_hash_animation_@2x.gif" srcset="https://a.slack-edge.com/272a/img/loading_hash_animation.gif 1x, https://a.slack-edge.com/f85a/img/loading_hash_animation_@2x.gif 2x" alt="Loading" class="loading_hash" /><br />loading...
+	<noscript>
+		You must enable javascript in order to use Slack :(
+				<style type="text/css">div.loading_hash { display: none; }</style>
+	</noscript>
+</div>		</div>	
+		<form action="https://brainhack.slack.com/files/dnkennedy/F2D47GQPR/abide_fs5.1_landrvolumes.csv"
+		id="file_comment_form"
+					class="comment_form"
+				method="post">
+			<a href="/team/erin.w.dickie" class="member_preview_link" data-member-id="U1R66SFC5" >
+			<span class="member_image thumb_36" style="background-image: url('https://secure.gravatar.com/avatar/cdca521bd279d157bed2a3eb10ef686f.jpg?s=72&d=https%3A%2F%2Fa.slack-edge.com%2F66f9%2Fimg%2Favatars%2Fava_0016-72.png')" data-thumb-size="36" data-member-id="U1R66SFC5"></span>
+		</a>
+		<input type="hidden" name="addcomment" value="1" />
+	<input type="hidden" name="crumb" value="s-1474296537-223c94b358-☃" />
+
+	<textarea id="file_comment" data-el-id-to-keep-in-view="file_comment_submit_btn" class="small comment_input small_bottom_margin autogrow-short" name="comment" wrap="virtual" ></textarea>
+	<span class="input_note float_left cloud_silver file_comment_tip">shift+enter to add a new line</span>	<button id="file_comment_submit_btn" type="submit" class="btn float_right  ladda-button" data-style="expand-right"><span class="ladda-label">Add Comment</span></button>
+</form>
+
+<form
+		id="file_edit_comment_form"
+					class="edit_comment_form hidden"
+				method="post">
+		<textarea id="file_edit_comment" class="small comment_input small_bottom_margin" name="comment" wrap="virtual"></textarea><br>
+	<span class="input_note float_left cloud_silver file_comment_tip">shift+enter to add a new line</span>	<input type="submit" class="save btn float_right " value="Save" />
+	<button class="cancel btn btn_outline float_right small_right_margin ">Cancel</button>
+</form>	
+	</div>
+	<div class="col span_1_of_6"></div>
+</div>
+</div>
+
+
+
+		
+	</div>
+	<div id="overlay"></div>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+var cdn_url = "https:\/\/slack.global.ssl.fastly.net";
+var inc_js_setup_data = {
+	emoji_sheets: {
+		apple: 'https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_apple_64_indexed_256colors.png',
+		google: 'https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_google_64_indexed_128colors.png',
+		twitter: 'https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_twitter_64_indexed_128colors.png',
+		emojione: 'https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_emojione_64_indexed_128colors.png',
+	},
+};
+</script>
+			<script type="text/javascript">
+<!--
+	// common boot_data
+	var boot_data = {
+		start_ms: Date.now(),
+		app: 'web',
+		user_id: 'U1R66SFC5',
+		no_login: false,
+		version_ts: '1474156526',
+		version_uid: '12cb126c5d1bd5fed2a90b90403d7e8645cd21f9',
+		cache_version: "v13-tiger",
+		cache_ts_version: "v1-cat",
+		redir_domain: 'slack-redir.net',
+		signin_url: 'https://slack.com/signin',
+		abs_root_url: 'https://slack.com/',
+		api_url: '/api/',
+		team_url: 'https://brainhack.slack.com/',
+		image_proxy_url: 'https://slack-imgs.com/',
+		beacon_timing_url: "https:\/\/slack.com\/beacon\/timing",
+		beacon_error_url: "https:\/\/slack.com\/beacon\/error",
+		clog_url: "clog\/track\/",
+		api_token: 'xoxs-16898709781-59210899413-59200372580-116f218adf',
+		ls_disabled: false,
+
+		notification_sounds: [{"value":"b2.mp3","label":"Ding","url":"https:\/\/slack.global.ssl.fastly.net\/dfc0\/sounds\/push\/b2.mp3"},{"value":"animal_stick.mp3","label":"Boing","url":"https:\/\/slack.global.ssl.fastly.net\/dfc0\/sounds\/push\/animal_stick.mp3"},{"value":"been_tree.mp3","label":"Drop","url":"https:\/\/slack.global.ssl.fastly.net\/dfc0\/sounds\/push\/been_tree.mp3"},{"value":"complete_quest_requirement.mp3","label":"Ta-da","url":"https:\/\/slack.global.ssl.fastly.net\/dfc0\/sounds\/push\/complete_quest_requirement.mp3"},{"value":"confirm_delivery.mp3","label":"Plink","url":"https:\/\/slack.global.ssl.fastly.net\/dfc0\/sounds\/push\/confirm_delivery.mp3"},{"value":"flitterbug.mp3","label":"Wow","url":"https:\/\/slack.global.ssl.fastly.net\/dfc0\/sounds\/push\/flitterbug.mp3"},{"value":"here_you_go_lighter.mp3","label":"Here you go","url":"https:\/\/slack.global.ssl.fastly.net\/dfc0\/sounds\/push\/here_you_go_lighter.mp3"},{"value":"hi_flowers_hit.mp3","label":"Hi","url":"https:\/\/slack.global.ssl.fastly.net\/dfc0\/sounds\/push\/hi_flowers_hit.mp3"},{"value":"item_pickup.mp3","label":"Yoink","url":"https:\/\/slack.global.ssl.fastly.net\/dfc0\/sounds\/push\/item_pickup.mp3"},{"value":"knock_brush.mp3","label":"Knock Brush","url":"https:\/\/slack.global.ssl.fastly.net\/dfc0\/sounds\/push\/knock_brush.mp3"},{"value":"save_and_checkout.mp3","label":"Woah!","url":"https:\/\/slack.global.ssl.fastly.net\/dfc0\/sounds\/push\/save_and_checkout.mp3"},{"value":"none","label":"None"}],
+		alert_sounds: [{"value":"frog.mp3","label":"Frog","url":"https:\/\/slack.global.ssl.fastly.net\/a34a\/sounds\/frog.mp3"}],
+		call_sounds: [{"value":"call\/alert_v2.mp3","label":"Alert","url":"https:\/\/slack.global.ssl.fastly.net\/08f7\/sounds\/call\/alert_v2.mp3"},{"value":"call\/incoming_ring_v2.mp3","label":"Incoming ring","url":"https:\/\/slack.global.ssl.fastly.net\/08f7\/sounds\/call\/incoming_ring_v2.mp3"},{"value":"call\/outgoing_ring_v2.mp3","label":"Outgoing ring","url":"https:\/\/slack.global.ssl.fastly.net\/08f7\/sounds\/call\/outgoing_ring_v2.mp3"},{"value":"call\/pop_v2.mp3","label":"Incoming reaction","url":"https:\/\/slack.global.ssl.fastly.net\/08f7\/sounds\/call\/pop_v2.mp3"},{"value":"call\/they_left_call_v2.mp3","label":"They left call","url":"https:\/\/slack.global.ssl.fastly.net\/08f7\/sounds\/call\/they_left_call_v2.mp3"},{"value":"call\/you_left_call_v2.mp3","label":"You left call","url":"https:\/\/slack.global.ssl.fastly.net\/08f7\/sounds\/call\/you_left_call_v2.mp3"},{"value":"call\/they_joined_call_v2.mp3","label":"They joined call","url":"https:\/\/slack.global.ssl.fastly.net\/08f7\/sounds\/call\/they_joined_call_v2.mp3"},{"value":"call\/you_joined_call_v2.mp3","label":"You joined call","url":"https:\/\/slack.global.ssl.fastly.net\/08f7\/sounds\/call\/you_joined_call_v2.mp3"},{"value":"call\/confirmation_v2.mp3","label":"Confirmation","url":"https:\/\/slack.global.ssl.fastly.net\/08f7\/sounds\/call\/confirmation_v2.mp3"}],
+		call_sounds_version: "v2",
+		max_team_handy_rxns: 5,
+		max_channel_handy_rxns: 5,
+		max_poll_handy_rxns: 7,
+		max_handy_rxns_title_chars: 30,
+		
+		feature_tinyspeck: false,
+		feature_i18n: false,
+		feature_create_team_google_auth: false,
+		feature_api_extended_2fa_backup: false,
+		feature_flannel_fe: false,
+		feature_emoji_usage_stats: false,
+		feature_viewmodel_proto: false,
+		feature_sales_tax: false,
+		feature_message_replies: false,
+		feature_no_rollups: false,
+		feature_web_lean: false,
+		feature_web_lean_all_users: false,
+		feature_reminders_v3: true,
+		feature_all_skin_tones: false,
+		feature_server_side_emoji_counts: true,
+		feature_a11y_keyboard_shortcuts: false,
+		feature_email_ingestion: false,
+		feature_msg_consistency: false,
+		feature_sli_channel_priority: false,
+		feature_sli_similar_channels: true,
+		feature_sli_channel_suggestbot: true,
+		feature_sli_clog_selections: false,
+		feature_emoji_keywords: true,
+		feature_thanks: false,
+		feature_attachments_inline: false,
+		feature_fix_files: true,
+		feature_files_list: true,
+		feature_channel_eventlog_client: true,
+		feature_macssb1_banner: true,
+		feature_macssb2_banner: true,
+		feature_latest_event_ts: true,
+		feature_elide_closed_dms: true,
+		feature_no_redirects_in_ssb: true,
+		feature_referer_policy: true,
+		feature_more_field_in_message_attachments: false,
+		feature_calls: true,
+		feature_calls_no_rtm_start: true,
+		feature_integrations_message_preview: true,
+		feature_paging_api: false,
+		feature_enterprise_api: true,
+		feature_enterprise_create: true,
+		feature_enterprise_api_auth: true,
+		feature_enterprise_profile: true,
+		feature_enterprise_search: true,
+		feature_enterprise_team_invite: true,
+		feature_enterprise_locked_settings: false,
+		feature_frecency_migration: false,
+		feature_enterprise_frecency: false,
+		feature_enterprise_team_overview_page: false,
+		feature_enterprise_search_ui: false,
+		feature_enterprise_mandatory_2fa: true,
+		feature_enterprise_user_account_settings: true,
+		feature_enterprise_security_auth_refactor: false,
+		feature_enterprise_member_profile_refactor: false,
+		feature_private_channels: true,
+		feature_mpim_restrictions: false,
+		feature_subteams_hard_delete: false,
+		feature_no_unread_counts: true,
+		feature_js_raf_queue: false,
+		feature_shared_channels: false,
+		feature_external_shared_channels_ui: false,
+		feature_manage_shared_channel_teams: false,
+		feature_shared_channels_settings: false,
+		feature_fast_files_flexpane: true,
+		feature_no_has_files: true,
+		feature_custom_saml_signin_button_label: true,
+		feature_optimistic_im_close: true,
+		feature_admin_approved_apps: true,
+		feature_winssb_beta_channel: false,
+		feature_inline_media_playback: false,
+		feature_branch_io_deeplink: true,
+		feature_clog_whats_new: true,
+		feature_upload_file_switch_channel: true,
+		feature_presence_sub: false,
+		feature_live_support_free_plan: false,
+		feature_dm_yahself: true,
+		feature_slackbot_goes_to_college: false,
+		feature_popover_dismiss_only: true,
+		feature_shared_invites: true,
+		feature_lato_2_ssb: true,
+		feature_refactor_buildmsghtml: false,
+		feature_allow_cdn_experiments: false,
+		feature_omit_localstorage_users_bots: false,
+		feature_disable_ls_compression: false,
+		feature_sign_in_with_slack: true,
+		feature_sign_in_with_slack_ui_elements: true,
+		feature_prevent_msg_rebuild: false,
+		feature_app_review_part_2: true,
+		feature_new_app_modal: true,
+		feature_app_review_scope_error: true,
+		feature_name_tagging_client: false,
+		feature_name_tagging_client_extras: false,
+		feature_name_tagging_client_search: false,
+		feature_msg_input_contenteditable: false,
+		feature_browse_date: true,
+		feature_use_imgproxy_resizing: false,
+		feature_multiple_app_ownership: false,
+		feature_update_message_file: false,
+		feature_custom_clogs: true,
+		feature_channels_view_introspect_messages: false,
+		feature_calls_linux: true,
+		feature_emoji_hover_styles: true,
+		feature_emoji_speed: false,
+		feature_a11y_pref_text_size: false,
+		feature_a11y_pref_no_animation: false,
+		feature_share_mention_comment_cleanup: false,
+		feature_search_menu: true,
+		feature_unread_view: true,
+		feature_unread_view_onboarding: true,
+		feature_tw: false,
+		feature_tw_ls_disabled: false,
+		feature_external_files: false,
+		feature_channel_info_pins_and_guests: false,
+		feature_min_web: false,
+		feature_electron_memory_logging: false,
+		feature_channel_name_menu: false,
+		feature_electron_window_gripper: true,
+		feature_simple_file_events: true,
+		feature_devrel_try_it_now: false,
+		feature_wait_for_all_mentions_in_client: false,
+		feature_free_inactive_domains: true,
+		feature_invitebulk_method_in_modal: false,
+		feature_invite_modal_contacts: false,
+		feature_platform_calls: false,
+		feature_a11y_tab: false,
+		feature_admin_billing_refactor: false,
+		feature_wrapped_mention_parsing: false,
+		feature_measure_css_usage: false,
+		feature_show_enterprise_signout_all: false,
+		feature_take_profile_photo: false,
+		feature_ajax_billing_history: false,
+		feature_msg_input_placeholder: true,
+		feature_multnomah: false,
+		feature_sales_tax_address: true,
+		feature_toggle_id_translation: false,
+		feature_can_edit_app: true,
+		feature_gdrive_1_dot_5: false,
+		feature_user_provisioning_team_events: false,
+		feature_ent_pricing_lp: true,
+		feature_updated_history_fetch_and_merge: true,
+		feature_file_id_from_url_update: false,
+
+		img: {
+			app_icon: 'https://a.slack-edge.com/272a/img/slack_growl_icon.png'
+		},
+		page_needs_custom_emoji: false,
+		page_needs_team_profile_fields: false,
+		page_needs_enterprise: false,
+		slackbot_help_enabled: true
+	};
+
+	
+	
+	
+	
+	// client boot data
+	
+	
+	
+//-->
+</script>	
+	
+				<!-- output_js "core" -->
+<script type="text/javascript" src="https://a.slack-edge.com/cf4c/js/rollup-core_required_libs.js" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://a.slack-edge.com/aed6/js/rollup-core_required_ts.js" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://a.slack-edge.com/bc516/js/TS.web.js" crossorigin="anonymous"></script>
+
+		<!-- output_js "core_web" -->
+<script type="text/javascript" src="https://a.slack-edge.com/125e0/js/rollup-core_web.js" crossorigin="anonymous"></script>
+
+		<!-- output_js "secondary" -->
+<script type="text/javascript" src="https://a.slack-edge.com/4973/js/rollup-secondary_a_required.js" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://a.slack-edge.com/24a7/js/rollup-secondary_b_required.js" crossorigin="anonymous"></script>
+
+					
+	<!-- output_js "regular" -->
+<script type="text/javascript" src="https://a.slack-edge.com/8e19/js/TS.web.comments.js" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://a.slack-edge.com/72195/js/TS.web.file.js" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://a.slack-edge.com/cb0fd/js/libs/codemirror.js" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://a.slack-edge.com/db4a/js/codemirror_load.js" crossorigin="anonymous"></script>
+
+		<script type="text/javascript">
+	<!--
+		boot_data.page_needs_custom_emoji = true;
+
+		boot_data.file = {"id":"F2D47GQPR","created":1474280517,"timestamp":1474280517,"name":"ABIDE_fs5.1_LandRvolumes.csv","title":"ABIDE_fs5.1_LandRvolumes.csv","mimetype":"text\/csv","filetype":"csv","pretty_type":"CSV","user":"U17N3FDS6","editable":true,"size":114929,"mode":"snippet","is_external":false,"external_type":"","is_public":true,"public_url_shared":false,"display_as_bot":false,"username":"","url_private":"https:\/\/files.slack.com\/files-pri\/T0GSELVNZ-F2D47GQPR\/abide_fs5.1_landrvolumes.csv","url_private_download":"https:\/\/files.slack.com\/files-pri\/T0GSELVNZ-F2D47GQPR\/download\/abide_fs5.1_landrvolumes.csv","permalink":"https:\/\/brainhack.slack.com\/files\/dnkennedy\/F2D47GQPR\/abide_fs5.1_landrvolumes.csv","permalink_public":"https:\/\/slack-files.com\/T0GSELVNZ-F2D47GQPR-8e5a61c3f7","edit_link":"https:\/\/brainhack.slack.com\/files\/dnkennedy\/F2D47GQPR\/abide_fs5.1_landrvolumes.csv\/edit","preview":"SubjID, LLatVent,RLatVent,Lthal,Rthal,Lcaud,Rcaud,Lput,Rput,  Lpal,Rpal,Lhippo,Rhippo,Lamyg,Ramyg,Laccumb,Raccumb,ICV\nCaltech_0051456,17950,21363,7444,7708,3836,3840,5367,4828,1616,1263,4239,4078,1627,1854,378,441,1.6976e+06\nCaltech_0051457,14742,12459,8597,9120,5618,5007,5400,5629,1857,1639,4114,5367,1801,1527,660,847,1.93805e+06\nCaltech_0051458,6198,4143,8137,9336,4970,4739,6202,5281,1945,1631,4770,5045,1947,1792,900,733,1.62388e+06\nCaltech_0051459,2636,2121,8769,9029,4010,4149,5861,5714,1837,1612,3995,4192,1430,1322,538,552,1.71576e+06","preview_highlight":"\u003Cdiv class=\"CodeMirror cm-s-default CodeMirrorServer\" oncopy=\"if(event.clipboardData){event.clipboardData.setData('text\/plain',window.getSelection().toString().replace(\/\\u200b\/g,''));event.preventDefault();event.stopPropagation();}\"\u003E\n\u003Cdiv class=\"CodeMirror-code\"\u003E\n\u003Cdiv\u003E\u003Cpre\u003ESubjID, LLatVent,RLatVent,Lthal,Rthal,Lcaud,Rcaud,Lput,Rput,  Lpal,Rpal,Lhippo,Rhippo,Lamyg,Ramyg,Laccumb,Raccumb,ICV\u003C\/pre\u003E\u003C\/div\u003E\n\u003Cdiv\u003E\u003Cpre\u003ECaltech_0051456,17950,21363,7444,7708,3836,3840,5367,4828,1616,1263,4239,4078,1627,1854,378,441,1.6976e+06\u003C\/pre\u003E\u003C\/div\u003E\n\u003Cdiv\u003E\u003Cpre\u003ECaltech_0051457,14742,12459,8597,9120,5618,5007,5400,5629,1857,1639,4114,5367,1801,1527,660,847,1.93805e+06\u003C\/pre\u003E\u003C\/div\u003E\n\u003Cdiv\u003E\u003Cpre\u003ECaltech_0051458,6198,4143,8137,9336,4970,4739,6202,5281,1945,1631,4770,5045,1947,1792,900,733,1.62388e+06\u003C\/pre\u003E\u003C\/div\u003E\n\u003Cdiv\u003E\u003Cpre\u003ECaltech_0051459,2636,2121,8769,9029,4010,4149,5861,5714,1837,1612,3995,4192,1430,1322,538,552,1.71576e+06\u003C\/pre\u003E\u003C\/div\u003E\n\u003C\/div\u003E\n\u003C\/div\u003E\n","lines":1114,"lines_more":1109,"channels":["C2CU212QY"],"groups":[],"ims":[],"comments_count":1,"initial_comment":{"id":"Fc2D484CU9","created":1474280517,"timestamp":1474280517,"user":"U17N3FDS6","is_intro":true,"comment":"\u003C@U0PMWSZGV\u003E here\u2019s the ABIDE Preprocessed FreeSurfer v5.1 combined volumes as a csv.","channel":""}};
+		boot_data.file.comments = [{"id":"Fc2D484CU9","created":1474280517,"timestamp":1474280517,"user":"U17N3FDS6","is_intro":true,"comment":"\u003C@U0PMWSZGV\u003E here\u2019s the ABIDE Preprocessed FreeSurfer v5.1 combined volumes as a csv.","channel":""}];
+
+		
+
+		var g_editor;
+
+		$(function(){
+
+			var wrap_long_lines = !!TS.model.code_wrap_long_lines;
+
+			g_editor = CodeMirror(function(elt){
+				var content = document.getElementById("file_contents");
+				content.parentNode.replaceChild(elt, content);
+			}, {
+				value: $('#file_contents').text(),
+				lineNumbers: true,
+				matchBrackets: true,
+				indentUnit: 4,
+				indentWithTabs: true,
+				enterMode: "keep",
+				tabMode: "shift",
+				viewportMargin: 10,
+				readOnly: true,
+				lineWrapping: wrap_long_lines
+			});
+
+			var max_lines = 500;
+			var snippet_lines;
+
+			// determine # of lines, limit height accordingly
+			if (g_editor.doc && g_editor.doc.lineCount) {
+				snippet_lines = parseInt(g_editor.doc.lineCount());
+				var new_height;
+				if (snippet_lines) {
+					// we want the CodeMirror container to collapse around short snippets.
+					// however, we want to let it auto-expand only up to a limit, at which point
+					// we specify a fixed height so CM can display huge snippets without dying.
+					// this is because CodeMirror works nicely with no height set, but doesn't
+					// scale (big file performance issue), and doesn't work with min/max-height -
+					// so at some point, we have to set an absolute height to kick it into its
+					// smart / partial "Long List View"-style rendering mode.
+					if (snippet_lines < max_lines) {
+						new_height = 'auto';
+					} else {
+						new_height = (max_lines * 0.875) + 'rem'; // line-to-rem ratio
+					}
+					var line_count = Math.min(snippet_lines, max_lines);
+					TS.info('Applying height of ' + new_height + ' to container for this snippet of ' + snippet_lines + (snippet_lines === 1 ? ' line' : ' lines'));
+					$('#page .CodeMirror').height(new_height);
+				}
+			}
+
+			$('#file_preview_wrap_cb').bind('change', function(e) {
+				TS.model.code_wrap_long_lines = $(this).prop('checked');
+				g_editor.setOption('lineWrapping', TS.model.code_wrap_long_lines);
+			})
+
+			$('#file_preview_wrap_cb').prop('checked', wrap_long_lines);
+
+			CodeMirror.switchSlackMode(g_editor, "csv");
+		});
+
+		
+		$('#file_comment').css('overflow', 'hidden').autogrow();
+	//-->
+	</script>
+
+			<script type="text/javascript">TS.boot(boot_data);</script>
+	
+<style>.color_9f69e7:not(.nuc) {color:#9F69E7;}.color_4bbe2e:not(.nuc) {color:#4BBE2E;}.color_e7392d:not(.nuc) {color:#E7392D;}.color_3c989f:not(.nuc) {color:#3C989F;}.color_674b1b:not(.nuc) {color:#674B1B;}.color_e96699:not(.nuc) {color:#E96699;}.color_e0a729:not(.nuc) {color:#E0A729;}.color_684b6c:not(.nuc) {color:#684B6C;}.color_5b89d5:not(.nuc) {color:#5B89D5;}.color_2b6836:not(.nuc) {color:#2B6836;}.color_99a949:not(.nuc) {color:#99A949;}.color_df3dc0:not(.nuc) {color:#DF3DC0;}.color_4cc091:not(.nuc) {color:#4CC091;}.color_9b3b45:not(.nuc) {color:#9B3B45;}.color_d58247:not(.nuc) {color:#D58247;}.color_bb86b7:not(.nuc) {color:#BB86B7;}.color_5a4592:not(.nuc) {color:#5A4592;}.color_db3150:not(.nuc) {color:#DB3150;}.color_235e5b:not(.nuc) {color:#235E5B;}.color_9e3997:not(.nuc) {color:#9E3997;}.color_53b759:not(.nuc) {color:#53B759;}.color_c386df:not(.nuc) {color:#C386DF;}.color_385a86:not(.nuc) {color:#385A86;}.color_a63024:not(.nuc) {color:#A63024;}.color_5870dd:not(.nuc) {color:#5870DD;}.color_ea2977:not(.nuc) {color:#EA2977;}.color_50a0cf:not(.nuc) {color:#50A0CF;}.color_d55aef:not(.nuc) {color:#D55AEF;}.color_d1707d:not(.nuc) {color:#D1707D;}.color_43761b:not(.nuc) {color:#43761B;}.color_e06b56:not(.nuc) {color:#E06B56;}.color_8f4a2b:not(.nuc) {color:#8F4A2B;}.color_902d59:not(.nuc) {color:#902D59;}.color_de5f24:not(.nuc) {color:#DE5F24;}.color_a2a5dc:not(.nuc) {color:#A2A5DC;}.color_827327:not(.nuc) {color:#827327;}.color_3c8c69:not(.nuc) {color:#3C8C69;}.color_8d4b84:not(.nuc) {color:#8D4B84;}.color_84b22f:not(.nuc) {color:#84B22F;}.color_4ec0d6:not(.nuc) {color:#4EC0D6;}.color_e23f99:not(.nuc) {color:#E23F99;}.color_e475df:not(.nuc) {color:#E475DF;}.color_619a4f:not(.nuc) {color:#619A4F;}.color_a72f79:not(.nuc) {color:#A72F79;}.color_7d414c:not(.nuc) {color:#7D414C;}.color_aba727:not(.nuc) {color:#ABA727;}.color_965d1b:not(.nuc) {color:#965D1B;}.color_4d5e26:not(.nuc) {color:#4D5E26;}.color_dd8527:not(.nuc) {color:#DD8527;}.color_bd9336:not(.nuc) {color:#BD9336;}.color_e85d72:not(.nuc) {color:#E85D72;}.color_dc7dbb:not(.nuc) {color:#DC7DBB;}.color_bc3663:not(.nuc) {color:#BC3663;}.color_9d8eee:not(.nuc) {color:#9D8EEE;}.color_8469bc:not(.nuc) {color:#8469BC;}.color_73769d:not(.nuc) {color:#73769D;}.color_b14cbc:not(.nuc) {color:#B14CBC;}</style>
+
+<!-- slack-www-hhvm144 / 2016-09-19 07:48:57 / v12cb126c5d1bd5fed2a90b90403d7e8645cd21f9 / B:H -->
+
+</body>
+</html>
