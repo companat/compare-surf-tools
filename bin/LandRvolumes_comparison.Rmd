@@ -1,0 +1,68 @@
+---
+title: "compare LandRvolumes"
+author: "Erin W Dickie and David Kennedy"
+date: '2016-09-29'
+output: html_document
+---
+
+I am using all these packages
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(corrplot)
+```
+
+# Loading all the data
+
+```{r}
+# the abide phenotypic information
+ABIDE_Phenotype.csv <- read.csv("../data/ABIDE_Phenotype.csv")
+subject_check <- read.csv("../data/subject_check.csv")
+
+# the cortical thicknesses and subcortical volumes for Freesurfer version 5.3 
+ABIDE_fs5.3_thickness <- read.csv("../data/ABIDE_fs5.3_thickness.csv")
+ABIDE_fs5.3_LandRvolumes <- read.csv("../data/ABIDE_fs5.3_LandRvolumes.csv")
+
+# the cortical thicknesses and subcortical volumes for Freesurfer version 5.1 
+abide_fs5.1_landrvolumes <- read.csv("../data/abide_fs5.1_landrvolumes.csv")
+cortical_fs5.1_measuresenigma_thickavg <- read.csv("../data/cortical_fs5.1_measuresenigma_thickavg.csv")
+
+## the cortical thicknesses calculated using ANTS
+ABIDE_ants_thickness_data <- read.csv("../data/ABIDE_ants_thickness_data.csv")
+```
+
+## Step 1. Let's merge the subcortical volume outputs from freesurfer 5.1 and 5.3 
+```{r}
+## step one - merge freesurfer 5.1 and freesurfer 5.3 on LandR volumes
+volumes_long <- merge(abide_fs5.1_landrvolumes,
+                      ABIDE_fs5.3_LandRvolumes, 
+                      by = "SubjID",
+                      suffixes = c(".fs5.1",".fs5.3"))
+```
+
+Let's use corrplot to look at the structure of all this data
+
+```{r fig.width = 7, fig.height = 7}
+## correlate everything with everything
+corrplot(cor(volumes_long[ ,2:ncol(volumes_long)]), tl.col = "black", tl.cex=0.6)
+```
+
+## Step 2. Let's reshape the data to look at specific comparisons
+```{r fig.width = 10, fig.height = 10}
+## make correlations for each brain region
+volumes_verymelted <- volumes_long %>%
+                        gather(BrainRegion.FS, Volume, -SubjID) %>%
+                        separate(BrainRegion.FS, into = c("BrainRegion", "fs", "Version"), sep = '\\.') %>%
+                        unite(FS.Version, fs, Version, sep = '.') %>%
+                        spread(FS.Version, Volume)
+
+ggplot(volumes_verymelted, aes(x=fs5.1, y=fs5.3)) +
+  geom_point() + 
+  geom_smooth(method=lm) +
+  facet_wrap(~BrainRegion, scales = "free", ncol = 4) +
+  labs(x = "Freesurfer 5.1 Volume", y = "Freesurfer 5.3 Volume") +
+  theme_bw()
+```
+
