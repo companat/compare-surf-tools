@@ -12,7 +12,11 @@
 # Prep the data
 # set the local working directory
 # setwd("~/abide/.")
+<<<<<<< HEAD
+setwd("~/abide/.")
+=======
 setwd("~/compare_surf_tools/.")
+>>>>>>> c39f3c48f64519dac7c0673ceec61c634e36b8e4
 
 # load the data  (assumes "data_prep.R" has been run)
 load("analysis/abide_ct.RData") # -- abide

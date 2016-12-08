@@ -13,7 +13,11 @@ require(readxl)
 # # # # # # # # # # # # # # # # # #
 # set the local working directory that assumes the github repository is cloned in a directory called "abide"
 # insert appropriate name otherwise
+<<<<<<< HEAD
+setwd("~/abide/.")
+=======
 setwd("~/compare_surf_tools/.")
+>>>>>>> c39f3c48f64519dac7c0673ceec61c634e36b8e4
 # # # # # # # # # # # # # # # # # #
 
 
@@ -21,7 +25,11 @@ setwd("~/compare_surf_tools/.")
 # Load the datasets:
 # # # # # # # # # # # # # # # # # #
 # ANTS
+<<<<<<< HEAD
+ants <- read.csv("compare_surf_tools/data/ABIDE_ants_thickness_data.csv", as.is = TRUE, skip = 2)
+=======
 ants <- read.csv("data/ABIDE_ants_thickness_data.csv", as.is = TRUE, skip = 2)
+>>>>>>> c39f3c48f64519dac7c0673ceec61c634e36b8e4
 # remove first column
 ants <- ants[-1]
 # rename "Structure.Name" column of subject id to "SubjID"
@@ -29,10 +37,17 @@ names(ants)[1] <- "SubjID"
 # NOTE that the labels have periods replacing the spaces: "left cuneus" -> "left.cuneus". This is how they are represented in the FreeSurfer label look-up table ("lut"; see below)
 
 # fs_5.1 data - "cortical_fs5.1_measuresenigma_thickavg.csv"
+<<<<<<< HEAD
+fs51 <- read.csv("compare_surf_tools/data/cortical_fs5.1_measuresenigma_thickavg.csv", as.is = TRUE)
+
+# fs_5.3 data - "ABIDE_fs5.3_thickness.csv"
+fs53 <- read.csv("compare_surf_tools/data/ABIDE_fs5.3_thickness.csv", as.is = TRUE)
+=======
 fs51 <- read.csv("data/cortical_fs5.1_measuresenigma_thickavg.csv", as.is = TRUE)
 
 # fs_5.3 data - "ABIDE_fs5.3_thickness.csv"
 fs53 <- read.csv("data/ABIDE_fs5.3_thickness.csv", as.is = TRUE)
+>>>>>>> c39f3c48f64519dac7c0673ceec61c634e36b8e4
 
 
 
@@ -171,7 +186,11 @@ abide_long$site <- gsub("_[[:digit:]]{5,}$", "", abide_long$SubjID)
 
 # # # # # # # # # # # # # # # # # #
 # To do: add phenotype data to the thickness data
+<<<<<<< HEAD
+phen <- read.csv("compare_surf_tools/data/ABIDE_Phenotype.csv", as.is = TRUE, na.strings = "-9999")
+=======
 phen <- read.csv("data/ABIDE_Phenotype.csv", as.is = TRUE, na.strings = "-9999")
+>>>>>>> c39f3c48f64519dac7c0673ceec61c634e36b8e4
 # merge by abide$SubjID and phen$Subject_ID
 abide <- merge(abide_long, phen, by.x = "SubjID", by.y = "Subject_ID", all.x = TRUE)
 

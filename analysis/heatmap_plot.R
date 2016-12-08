@@ -24,7 +24,11 @@ require(RColorBrewer)
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # set the local working directory that assumes the github repository is cloned in a directory called "abide"
 # insert appropriate name otherwise
+<<<<<<< HEAD
+setwd("~/abide/.")
+=======
 setwd("~/compare_surf_tools/.")
+>>>>>>> c39f3c48f64519dac7c0673ceec61c634e36b8e4
 # load the dataset (assumes "data_prep.R" and "pairs_plot.R" has been run)
 load("analysis/abide_ct.RData") # -- abide
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
