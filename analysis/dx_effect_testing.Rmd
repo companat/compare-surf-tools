@@ -1,0 +1,86 @@
+---
+title: "ABIDEI thickness Dx efffects"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+OK let's do the funner thing...let's try to calculate some effect sizes for diagnosis effects
+
+```{r, message = F}
+library(dplyr)
+library(tidyr)
+library(broom)
+library(ggplot2)
+library(knitr)
+```
+
+
+## read in the data
+
+```{r}
+fs5.1  = read.csv('../data/cortical_fs5.1_measuresenigma_thickavg.csv', header = T)
+#names(fs5.1) <- paste0(names(fs5.1), '_fs5.1')
+fs5.3 = read.csv('../data/ABIDE_fs5.3_thickness.csv', header = T)
+#names(fs5.3) <- paste0(names(fs5.3), '_fs5.3')
+ants = read.csv('../data/ABIDE_ants_thickness_data_r.csv', header = T)
+#names(ants) <- paste0(names(ants), '_ants')
+pheno = read.csv('../data/ABIDE_Phenotype.csv', header = T)
+pheno$DX_GROUP <- factor(pheno$DX_GROUP, levels = c(1,2), labels = c("ASD","TD"))
+```
+
+## Starting with FS 5.3 let's see what diagnosis effect sizes we can get
+
+```{r}
+## Merge it all into one mega- data - frame
+fs5.3_thick <- fs5.3 %>%
+  gather(Region, thickness, ends_with("thickavg")) %>%
+  mutate(CommonRegion  = gsub('_thickavg','',Region)) %>%
+  select(SubjID, CommonRegion, thickness)
+fs5.3_thick$toolkit <- "freesurfer_5.3"
+
+fs5.1_thick <- fs5.1 %>%
+  gather(Region, thickness, ends_with("thickavg")) %>%
+  mutate(CommonRegion  = gsub('_thickavg','',Region)) %>%
+  select(SubjID, CommonRegion, thickness)
+fs5.1_thick$toolkit <- "freesurfer_5.1"
+
+ants_thick <- ants %>%
+  gather(Region, thickness, starts_with("right"), starts_with("left")) %>%
+  mutate(CommonRegion  = gsub('\\.','', gsub('right','R_', gsub('left','L_',Region)))) %>% 
+  filter(CommonRegion %in% unique(fs5.3_thick$CommonRegion)) %>%
+  select(Code, CommonRegion, thickness)
+ants_thick$toolkit <- "ANTS"
+names(ants_thick) <- c("SubjID", "CommonRegion", "thickness", "toolkit")
+
+allthickness <- rbind(fs5.3_thick, fs5.1_thick, ants_thick)
+
+df <- merge(allthickness, pheno, by.x = "SubjID", by.y = "Subject_ID")
+
+dx_raw <- df %>%
+  group_by(CommonRegion, toolkit) %>%
+  do(glance(lm(thickness ~ DX_GROUP, .)))
+
+dx_wcovs<- df %>%
+  group_by(CommonRegion, toolkit) %>%
+  do(tidy(lm(thickness ~ DX_GROUP + AGE_AT_SCAN + SITE_ID, .)))
+
+dx_effect_wcov <- filter(dx_wcovs, term == "DX_GROUPTD")
+age_effect_wcov <- filter(dx_wcovs, term == "AGE_AT_SCAN")
+
+ggplot(dx_raw, aes(y=p.value , x=CommonRegion, color = toolkit)) +
+  geom_point() +
+  scale_y_log10() + 
+  coord_flip()
+
+ggplot(dx_effect_wcov, aes(y=p.value , x=CommonRegion, color = toolkit)) +
+  geom_point() +
+  scale_y_log10() + 
+  coord_flip()
+
+ggplot(age_effect_wcov, aes(y=p.value , x=CommonRegion, color = toolkit)) +
+  geom_point() +
+  scale_y_log10() + 
+  coord_flip()
+
+```

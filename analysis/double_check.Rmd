@@ -1,0 +1,175 @@
+---
+title: "R Notebook"
+output:
+  pdf_document: default
+  html_notebook: default
+  html_document: default
+---
+
+In this little experiment, I wanted to double check that the ROIs at least matched up in the same way.  To do so. I asked a pretty simple question, is the thickness from this ROI more correlated (measured with package A), more correlated with the thickness from this ROI (measured with package B), than it is with the thickness of any other ROI (measured with package B). So I created tables that report 3 values:
+
+1. **rho**: the correlation of ROI (package A vs package B)
+2. **popZ**: The Z-score of this correlation values within the pools of all correlations between all ROIs of the other package
+3. **rankZ**: The Percent Rank of this ROI compared to all other ROI's from package B (1 is the best)
+
+
+```{r, message = F}
+library(dplyr)
+library(tidyr)
+library(knitr)
+```
+
+## Step 1 Read in the Data
+
+```{r}
+fs5.1  = read.csv('../data/cortical_fs5.1_measuresenigma_thickavg.csv', header = T)
+fs5.3 = read.csv('../data/ABIDE_fs5.3_thickness.csv', header = T)
+ants = read.csv('../data/ABIDE_ants_thickness_data_r.csv', header = T)
+pheno = read.csv('../data/ABIDE_Phenotype.csv', header = T)
+
+```
+
+## Compare Freesurfer 5.1 to Freesurfer 5.3
+
+```{r}
+## merge and generate correlation matrixes for sanity check
+fs5.1and5.3 = merge(fs5.1, fs5.3, by = "SubjID", suffixes = c('_fs5.1','_fs5.3'))
+ants_fs5.1 = merge(ants, fs5.1, by.x = 'Code', by.y = 'SubjID', suffixes = c('ants','_fs5.1'))
+
+cor5.1to5.3 <- cor(select(fs5.1and5.3, ends_with('_fs5.1')),select(fs5.1and5.3, ends_with('_fs5.3')))
+
+fsdf <- as.data.frame(cor5.1to5.3)
+fsdf$fs5.1_var <- row.names(fsdf)
+fs_g <- gather(fsdf, fs5.3_var, rho, -fs5.1_var)
+
+df <- fs_g %>%
+  separate(fs5.1_var, c("hemi1","stuff"), sep = '_', extra = "merge", fill = "left") %>%
+  separate(stuff, c("region1","version1"), sep = '_', extra = "merge", fill = "right") %>%
+  separate(fs5.3_var, c("hemi3","stuff"), sep = '_', extra = "merge", fill = "left") %>%
+  separate(stuff, c("region3","version3"), sep = '_', extra = "merge", fill = "right") 
+  
+df$roipair <- NA
+df$roipair[df$hemi1==df$hemi3 & df$region1==df$region3] <- "same" 
+df$roipair[df$hemi1!=df$hemi3 & df$region1==df$region3] <- "contralateral" 
+df$roipair[df$region1!=df$region3] <- "cross" 
+
+df$Z <- atanh(df$rho)
+
+checks_fs5.35.1 <- df %>%
+  filter(hemi1 %in% c('L','R'), hemi3 %in% c('L','R')) %>%
+  group_by(region1, hemi1) %>%
+  mutate(popZ = as.numeric(scale(Z)),
+         rankZ = as.numeric(rank(Z), ties.method = "first")/n()) %>%
+  ungroup() %>%
+  filter(roipair == "same")
+
+
+kable(select(checks_fs5.35.1, region1, hemi1, rho, popZ, rankZ), 
+      caption = "Comparison of Freesurfer 5.1 to Freesurfer 5.3")
+
+summary_report_fs5.3.5.1 <- checks_fs5.35.1 %>%
+  filter(roipair == "same") %>%
+  ungroup() %>%
+  summarise(Mean = mean(rho), 
+            Min = min(rho), 
+            Max = max(rho))
+
+kable(summary_report_fs5.3.5.1, caption = "Summary of Freesurfer 5.3 to Freesurfer 5.1")
+```
+```{r}
+
+ants_fs5.1 = merge(ants, fs5.1, by.x = 'Code', by.y = 'SubjID', suffixes = c('ants','_fs5.1'))
+
+cor5.1toants <- cor(select(ants_fs5.1, starts_with('left'), starts_with('right')),select(ants_fs5.1, starts_with('L_'), starts_with('R_')))
+
+fsdf <- as.data.frame(cor5.1toants)
+fsdf$ants_var <- row.names(fsdf)
+fs_g <- gather(fsdf, fs5.1_var, rho, -ants_var)
+
+df <- fs_g %>%
+  separate(fs5.1_var, c("hemi1","stuff"), sep = '_', extra = "merge", fill = "left") %>%
+  separate(stuff, c("region1","version1"), sep = '_', extra = "merge", fill = "right") %>%
+  separate(ants_var, c("hemi_a","stuff"), sep = '\\.', extra = "merge", fill = "left") 
+
+df$region_ants <-  gsub('\\.','',df$stuff)
+
+df$hemi_ants <- NA
+df$hemi_ants[df$hemi_a == "left"] <- "L"
+df$hemi_ants[df$hemi_a == "right"] <- "R"
+  
+df$roipair <- NA
+df$roipair[df$hemi1==df$hemi_ants & df$region1==df$region_ants] <- "same" 
+df$roipair[df$hemi1!=df$hemi_ants & df$region1==df$region_ants] <- "contralateral" 
+df$roipair[df$region1!=df$region_ants] <- "cross" 
+
+df$Z <- atanh(df$rho)
+
+checks_fs5.1ants <- df %>%
+  filter(hemi1 %in% c('L','R'), hemi_ants %in% c('L','R'), !is.na(rho)) %>%
+  group_by(region1, hemi1) %>%
+  mutate(popZ = as.numeric(scale(Z)),
+         rankZ = as.numeric(rank(Z),ties.method = "first")/n()) 
+
+kable(select(filter(checks_fs5.1ants,roipair=="same"), region1, hemi1, rho, popZ, rankZ),
+       caption = "Comparison of Freesurfer 5.1 to ANTS")
+summary_report_fs5.1ants <- checks_fs5.1ants %>%
+  filter(roipair == "same") %>%
+  ungroup() %>%
+  summarise(Mean = mean(rho), 
+            Min = min(rho), 
+            Max = max(rho))
+
+kable(summary_report_fs5.1ants, caption = "Summary of Freesurfer 5.1 to ANTS comparsion")
+
+kable(select(filter(checks_fs5.1ants,rankZ==1.0), region1, hemi1, region_ants, hemi_ants, rho, popZ, rankZ),
+      caption = "The most correlated region from ANTS for each ROI")
+```
+```{r}
+
+ants_fs5.3 = merge(ants, fs5.3, by.x = 'Code', by.y = 'SubjID', suffixes = c('ants','_fs5.1'))
+
+cor5.3toants <- cor(select(ants_fs5.3, starts_with('left'), starts_with('right')),select(ants_fs5.3, starts_with('L_'), starts_with('R_')))
+
+fsdf <- as.data.frame(cor5.3toants)
+fsdf$ants_var <- row.names(fsdf)
+fs_g <- gather(fsdf, fs5.3_var, rho, -ants_var)
+
+df <- fs_g %>%
+  separate(fs5.3_var, c("hemi3","stuff"), sep = '_', extra = "merge", fill = "left") %>%
+  separate(stuff, c("region3","version3"), sep = '_', extra = "merge", fill = "right") %>%
+  separate(ants_var, c("hemi_a","stuff"), sep = '\\.', extra = "merge", fill = "left") 
+
+df$region_ants <-  gsub('\\.','',df$stuff)
+
+df$hemi_ants <- NA
+df$hemi_ants[df$hemi_a == "left"] <- "L"
+df$hemi_ants[df$hemi_a == "right"] <- "R"
+  
+df$roipair <- NA
+df$roipair[df$hemi3==df$hemi_ants & df$region3==df$region_ants] <- "same" 
+df$roipair[df$hemi3!=df$hemi_ants & df$region3==df$region_ants] <- "contralateral" 
+df$roipair[df$region3!=df$region_ants] <- "cross" 
+
+df$Z <- atanh(df$rho)
+
+checks_fs5.3ants <- df %>%
+  filter(hemi3 %in% c('L','R'), hemi_ants %in% c('L','R'), !is.na(rho)) %>%
+  group_by(region3, hemi3) %>%
+  mutate(popZ = as.numeric(scale(Z)),
+         rankZ = as.numeric(rank(Z),ties.method = "first")/n()) 
+
+kable(select(filter(checks_fs5.3ants,roipair=="same"), region3, hemi3, rho, popZ, rankZ),
+      caption = "Comparison of Freesurfer 5.3 to ANTS")
+
+summary_report_fs5.3ants <- checks_fs5.3ants %>%
+  filter(roipair == "same") %>%
+  ungroup() %>%
+  summarise(Mean = mean(rho), 
+            Min = min(rho), 
+            Max = max(rho))
+
+kable(summary_report_fs5.3ants, caption = "Summary of Freesurfer 5.3 to ANTS comparsion")
+
+kable(select(filter(checks_fs5.3ants,rankZ==1.0), region3, hemi3, region_ants, hemi_ants, rho, popZ, rankZ),
+      caption = "The most correlated region from ANTS for each ROI")
+```
