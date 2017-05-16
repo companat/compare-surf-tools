@@ -5,7 +5,9 @@ A BrainHack Project to compare thickness outputs from different pipelines run on
 
 Some of the scripts here make use of R libraries `ggplot2`, `tidyr` and `dplyr`. The latest versions of these libraries come packaged together inside the "tidyverse" can be installed with:
 
+```
 install.packages(tidyverse)
+```
 
 ## R markdown
 
