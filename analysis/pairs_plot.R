@@ -1,22 +1,31 @@
 # 2016-10-31
+# 2016-12-21
 # ABIDE analysis of cortical thickness by method ANTS and FreeSurfer (vs. 5.1 and 5.3).
 # Pairs plots with scatterplot in lower triangle, histograms on main diagonal, and correlation coefficients (Pearson) on the upper diagonal.
 # Most of this is an import from an earlier test.
 # ... the main difference is to now use the "long" dataframe that has an explicit "site" column
 
+# new files created are:
+# A directory called "results"
+# A subdirectory called "results/pair_plots"
+# PDF files of pair-wise plot of each parcellation unit pair as [unit_abbreviation].pdf
+
+
+# # # # # # # # # # # # # # # # # #
+# set the local working directory that assumes the github repository is cloned as a directory called "compare_surf_tools"
+# insert appropriate name otherwise, such as this for the command line:
+# $ cd compare-surf-tools/
+# ... or this, once R is running:
+# > setwd("compare-surf-tools/.")
+# # # # # # # # # # # # # # # # # #
+
+
+
 # # # # # # # # # # # # # # # # # # # #
 # Load the required R packages
 # *** none except base R ***
 
-# # # # # # # # # # # # # # # # # # # #
-# Prep the data
-# set the local working directory
-# setwd("~/abide/.")
-<<<<<<< HEAD
-setwd("~/abide/.")
-=======
-setwd("~/compare_surf_tools/.")
->>>>>>> c39f3c48f64519dac7c0673ceec61c634e36b8e4
+
 
 # load the data  (assumes "data_prep.R" has been run)
 load("analysis/abide_ct.RData") # -- abide
@@ -87,7 +96,7 @@ for(i in seq_along(roi)){
 
 	# left hemi plot
 	pairs(
-		xdf_wide[xdf_wide$hemi_abbrev == "L", 4:6],
+		xdf_wide[xdf_wide$hemi_abbrev == "L", c("ANTS", "FS51", "FS53")],
 		gap = 0,
 		lower.panel = panel.smooth.ab,
 		upper.panel = panel.cor,
@@ -100,7 +109,7 @@ for(i in seq_along(roi)){
 	)
 	# Right hemi plot
 	pairs(
-		xdf_wide[xdf_wide$hemi_abbrev == "R", 4:6],
+		xdf_wide[xdf_wide$hemi_abbrev == "R", c("ANTS", "FS51", "FS53")],
 		gap = 0,
 		lower.panel = panel.smooth.ab,
 		upper.panel = panel.cor,

@@ -1,8 +1,23 @@
 # 2016-10-26
+# 2016-12-21
 # ABIDE analysis of average cortical thickness according to analysis method [ANTS, FS_5.1, FS_5.3]
-# Source of project is git repository: https://github.com/edickie/compare_surf_tools
+# Source of project is git repository: https://github.com/companat/compare_surf_tools
 
 # Goal: Combine the data sources into one merged data frame with some added labels for grouping the results by hemisphere, lobe, etc.
+
+# new files created are:
+# "analysis/abide_ct.RData"
+
+
+
+# # # # # # # # # # # # # # # # # #
+# set the local working directory that assumes the github repository is cloned as a directory called "compare-surf-tools"
+# $ cd compare_surf_tools/
+# ... or this, once R is running:
+# > setwd("compare-surf-tools/.")
+# # # # # # # # # # # # # # # # # #
+
+
 
 # # # # # # # # # # # # # # # # # #
 # Load the required package (for reading the FS lookup-table of terms)
@@ -11,25 +26,10 @@ require(readxl)
 
 
 # # # # # # # # # # # # # # # # # #
-# set the local working directory that assumes the github repository is cloned in a directory called "abide"
-# insert appropriate name otherwise
-<<<<<<< HEAD
-setwd("~/abide/.")
-=======
-setwd("~/compare_surf_tools/.")
->>>>>>> c39f3c48f64519dac7c0673ceec61c634e36b8e4
-# # # # # # # # # # # # # # # # # #
-
-
-# # # # # # # # # # # # # # # # # #
 # Load the datasets:
 # # # # # # # # # # # # # # # # # #
 # ANTS
-<<<<<<< HEAD
-ants <- read.csv("compare_surf_tools/data/ABIDE_ants_thickness_data.csv", as.is = TRUE, skip = 2)
-=======
 ants <- read.csv("data/ABIDE_ants_thickness_data.csv", as.is = TRUE, skip = 2)
->>>>>>> c39f3c48f64519dac7c0673ceec61c634e36b8e4
 # remove first column
 ants <- ants[-1]
 # rename "Structure.Name" column of subject id to "SubjID"
@@ -37,17 +37,10 @@ names(ants)[1] <- "SubjID"
 # NOTE that the labels have periods replacing the spaces: "left cuneus" -> "left.cuneus". This is how they are represented in the FreeSurfer label look-up table ("lut"; see below)
 
 # fs_5.1 data - "cortical_fs5.1_measuresenigma_thickavg.csv"
-<<<<<<< HEAD
-fs51 <- read.csv("compare_surf_tools/data/cortical_fs5.1_measuresenigma_thickavg.csv", as.is = TRUE)
-
-# fs_5.3 data - "ABIDE_fs5.3_thickness.csv"
-fs53 <- read.csv("compare_surf_tools/data/ABIDE_fs5.3_thickness.csv", as.is = TRUE)
-=======
 fs51 <- read.csv("data/cortical_fs5.1_measuresenigma_thickavg.csv", as.is = TRUE)
 
 # fs_5.3 data - "ABIDE_fs5.3_thickness.csv"
 fs53 <- read.csv("data/ABIDE_fs5.3_thickness.csv", as.is = TRUE)
->>>>>>> c39f3c48f64519dac7c0673ceec61c634e36b8e4
 
 
 
@@ -186,11 +179,7 @@ abide_long$site <- gsub("_[[:digit:]]{5,}$", "", abide_long$SubjID)
 
 # # # # # # # # # # # # # # # # # #
 # To do: add phenotype data to the thickness data
-<<<<<<< HEAD
-phen <- read.csv("compare_surf_tools/data/ABIDE_Phenotype.csv", as.is = TRUE, na.strings = "-9999")
-=======
 phen <- read.csv("data/ABIDE_Phenotype.csv", as.is = TRUE, na.strings = "-9999")
->>>>>>> c39f3c48f64519dac7c0673ceec61c634e36b8e4
 # merge by abide$SubjID and phen$Subject_ID
 abide <- merge(abide_long, phen, by.x = "SubjID", by.y = "Subject_ID", all.x = TRUE)
 
