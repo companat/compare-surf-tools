@@ -1,6 +1,6 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # 2016-10-26
-# correlation heatmaps of ANTS vars with FS5.1 vars
+# 2016-12-21# correlation heatmaps of ANTS vars with FS5.1 vars
 # # ... to check possible mis-alignment of label names
 # 1. get correlations of each unique ants labels with each unique fs5.1 label
 # 2. get pairwise correlations
@@ -14,6 +14,23 @@
 # rval = pearson correlation
 # pval = p-value of pearson correlation
 
+# new files created are:
+# 1. The subdirectory "results/heatmaps/" with the files:
+  # heatmap_ants_fs51.pdf  # heatmap_ants_fs53.pdf  # heatmap_fs51_fs53.pdf
+# 2. Dataframes of the pairwise correlation results (i.e. the numbers behind the colors in the heatmaps) in results/.
+  # corrs_ants_fs51.RData  # corrs_ants_fs53.RData  # corrs_fs51_fs53.RData
+
+
+
+# # # # # # # # # # # # # # # # # #
+# set the local working directory that assumes the github repository is cloned as a directory called "compare-surf-tools"
+# insert appropriate name otherwise, such as this for the command line:
+# $ cd compare-surf-tools/
+# ... or this, once R is running:
+# > setwd("compare-surf-tools/.")
+# # # # # # # # # # # # # # # # # #
+
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Load the required R packages
 require(ggplot2)
@@ -22,13 +39,6 @@ require(RColorBrewer)
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# set the local working directory that assumes the github repository is cloned in a directory called "abide"
-# insert appropriate name otherwise
-<<<<<<< HEAD
-setwd("~/abide/.")
-=======
-setwd("~/compare_surf_tools/.")
->>>>>>> c39f3c48f64519dac7c0673ceec61c634e36b8e4
 # load the dataset (assumes "data_prep.R" and "pairs_plot.R" has been run)
 load("analysis/abide_ct.RData") # -- abide
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -81,6 +91,8 @@ names(results_df) <- c("ANTS_roi", "FS51_roi", "r_value", "p_value")
 results_df$ANTS_roi <- factor(results_df$ANTS_roi)
 results_df$FS51_roi <- factor(results_df$FS51_roi)
 save(results_df, file = "results/corrs_ants_fs51.RData")
+# save as csv file as well
+write.csv(results_df, file = "results/corrs_ants_fs51.csv", row.names = FALSE)
 # reverse the levels of FS5.1_roi for top-left plotting
 results_df$FS51_roi <- factor(results_df$FS51_roi, levels = rev(levels(results_df$FS51_roi)))
 
@@ -147,6 +159,8 @@ names(results_df) <- c("ANTS_roi", "FS53_roi", "r_value", "p_value")
 results_df$ANTS_roi <- factor(results_df$ANTS_roi)
 results_df$FS53_roi <- factor(results_df$FS53_roi)
 save(results_df, file = "results/corrs_ants_fs53.RData")
+# save as csv file as well
+write.csv(results_df, file = "results/corrs_ants_fs53.csv", row.names = FALSE)
 # reverse the levels of FS5.3_roi for top-left plotting
 results_df$FS53_roi <- factor(results_df$FS53_roi, levels = rev(levels(results_df$FS53_roi)))
 
@@ -213,6 +227,8 @@ names(results_df) <- c("FS51_roi", "FS53_roi", "r_value", "p_value")
 results_df$FS51_roi <- factor(results_df$FS51_roi)
 results_df$FS53_roi <- factor(results_df$FS53_roi)
 save(results_df, file = "results/corrs_fs51_fs53.RData")
+# save as csv file as well
+write.csv(results_df, file = "results/corrs_fs51_fs53.csv", row.names = FALSE)
 # reverse the levels of FS5.3_roi for top-left plotting
 results_df$FS53_roi <- factor(results_df$FS53_roi, levels = rev(levels(results_df$FS53_roi)))
 
