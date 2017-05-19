@@ -24,6 +24,12 @@ In the 'analysis' diretory, there are R the following R scripts:
 * heatmap_plot.R   ! Script to check possible mis-alignment of label names
 * pairs_plot.R     ! Script to create tool-pair plots with scatterplot in lower triangle, histograms on main diagonal, and correlation coefficients (Pearson) on the upper diagonal.
 
+There are also Rmd scripts in this directory:
+* double_check.Rmd      ! A script to double check that the ROIs at least matched up in the same way across the data sources.
+* dx_effect_testing.Rmd ! Script to look at diagnostic effects in the thickness data.
+
+
+
 In the 'bin' directory, there is the following Rmd script:
 * LandRvolumes_comparison.Rmd  ! Script to...
 
