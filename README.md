@@ -1,6 +1,10 @@
 # compare_surf_tools
 A BrainHack Project to compare thickness outputs from different pipelines run on ABIDEI
 
+The principle deliverables of this project are:
+1) a set of unified data tables for FreeSurfer (version 5.1 and 5.3) and ANTS anatomic analyses of the ABIDE 1 data, and
+2) a set of R analysis scripts that reads and performs simple comparison analyses on these data tables.
+
 ## R package requirements
 
 Some of the scripts here make use of R libraries `ggplot2`, `tidyr` and `dplyr`. The latest versions of these libraries come packaged together inside the "tidyverse" can be installed with:
