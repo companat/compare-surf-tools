@@ -13,6 +13,7 @@ library(tidyr)
 library(broom)
 library(ggplot2)
 library(knitr)
+library(forcats)
 ```
 
 
@@ -29,7 +30,7 @@ pheno = read.csv('../data/ABIDE_Phenotype.csv', header = T)
 pheno$DX_GROUP <- factor(pheno$DX_GROUP, levels = c(1,2), labels = c("ASD","TD"))
 ```
 
-## Starting with FS 5.3 let's see what diagnosis effect sizes we can get
+## wrangle and merge all three dataframes together
 
 ```{r}
 ## Merge it all into one mega- data - frame
@@ -56,31 +57,69 @@ names(ants_thick) <- c("SubjID", "CommonRegion", "thickness", "toolkit")
 allthickness <- rbind(fs5.3_thick, fs5.1_thick, ants_thick)
 
 df <- merge(allthickness, pheno, by.x = "SubjID", by.y = "Subject_ID")
+```
 
+
+## Model the Diagnosis Effect Without Covariates and plot
+
+```{r, fig.height=11, fig.width=8}
 dx_raw <- df %>%
   group_by(CommonRegion, toolkit) %>%
   do(glance(lm(thickness ~ DX_GROUP, .)))
 
+ggplot(dx_raw, aes(y=p.value , 
+                            x= fct_reorder(CommonRegion, p.value, .desc=TRUE), 
+                            color = toolkit)) +
+  geom_point() +
+  geom_line(aes(x = as.numeric(fct_reorder(CommonRegion, p.value, .desc=TRUE)), y = p.value)) +
+  scale_color_brewer(palette = "Set1") +
+  scale_y_reverse() +
+  scale_y_log10() + 
+  coord_flip() +
+  labs(title = "Effect of Diagnosis, no covariates ",
+       x = NULL,
+       y = "Log p-value (uncorrected")
+```
+
+## Model the Diagnosis Effect With Diagnosis plus Site
+
+```{r}
 dx_wcovs<- df %>%
   group_by(CommonRegion, toolkit) %>%
   do(tidy(lm(thickness ~ DX_GROUP + AGE_AT_SCAN + SITE_ID, .)))
 
 dx_effect_wcov <- filter(dx_wcovs, term == "DX_GROUPTD")
 age_effect_wcov <- filter(dx_wcovs, term == "AGE_AT_SCAN")
-
-ggplot(dx_raw, aes(y=p.value , x=CommonRegion, color = toolkit)) +
-  geom_point() +
-  scale_y_log10() + 
-  coord_flip()
-
-ggplot(dx_effect_wcov, aes(y=p.value , x=CommonRegion, color = toolkit)) +
-  geom_point() +
-  scale_y_log10() + 
-  coord_flip()
-
-ggplot(age_effect_wcov, aes(y=p.value , x=CommonRegion, color = toolkit)) +
-  geom_point() +
-  scale_y_log10() + 
-  coord_flip()
-
 ```
+```{r, fig.height=11, fig.width=8}
+ggplot(dx_effect_wcov, aes(y=p.value , 
+                            x= fct_reorder(CommonRegion, p.value, .desc=TRUE), 
+                            color = toolkit)) +
+  geom_point() +
+  geom_line(aes(x = as.numeric(fct_reorder(CommonRegion, p.value, .desc=TRUE)), y = p.value)) +
+  scale_color_brewer(palette = "Set1") +
+  scale_y_reverse() +
+  scale_y_log10() + 
+  coord_flip() +
+  labs(title = "Effect of ASD diagnosis, controlling for Age and Site ",
+       x = NULL,
+       y = "Log p-value (uncorrected")
+```
+
+## Plotting the Age term
+
+```{r, fig.height=11, fig.width=8}
+ggplot(age_effect_wcov, aes(y=p.value , 
+                            x= fct_reorder(CommonRegion, p.value, .desc=TRUE), 
+                            color = toolkit)) +
+  geom_point() +
+  geom_line(aes(x = as.numeric(fct_reorder(CommonRegion, p.value, .desc=TRUE)), y = p.value)) +
+  scale_color_brewer(palette = "Set1") +
+  scale_y_reverse() +
+  scale_y_log10() + 
+  coord_flip() +
+  labs(title = "Effect of Age, controlling for Diagnosis and Site ",
+       x = NULL,
+       y = "Log p-value (uncorrected")
+```
+
