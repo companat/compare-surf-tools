@@ -6,7 +6,7 @@ The principle deliverables of this project are:
 2) a set of R analysis scripts that reads and performs simple comparison analyses on these data tables.
 
 ## The Data Files
-Consolidated from the analysis results provided at http://preprocessed-connectomes-project.org/abide/Description, we provide the following unified data tables:
+Consolidated from the analysis results provided at http://preprocessed-connectomes-project.org/abide/Description, we provide the following unified data tables in the 'data' directory:
 * ABIDE_Phenotype.csv             ! phenotypic data for the subjects
 * ABIDE_ants_thickness_data.csv   ! thickness data from ANTS analysis
 * ABIDE_fs5.3_LandRvolumes.csv    ! volume data from FreeSurfer 5.3 analysis
