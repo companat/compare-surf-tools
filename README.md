@@ -46,7 +46,7 @@ install.packages(tidyverse)
 
 Some of these sciprts are written in rmardown, which can be quickly converted in to html or pdf reports. The libararies for working with R markdown come packaged within the Rstudio IDE, so anybody using it should have them already. [Click here for more info on R markdown](http://rmarkdown.rstudio.com/authoring_quick_tour.html#rendering_output). We provide the R markdown scripts and also the rendered .pdf reports in this repo.
 
-If not using Rstudio. You will need the following libraries to render teh .rmd file into and .html report
+If not using Rstudio. You will need the following libraries to render the .rmd file into and .html report
 ```
 install.packages(knitr)
 install.packages(rmarkdown)
